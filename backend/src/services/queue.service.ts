@@ -18,7 +18,7 @@ const redisUrl = new URL(process.env.REDIS_URL as string);
 export const submissionQueue = new Bull('submission-processing', {
   redis: {
     host: redisUrl.hostname,
-    port: parseInt(redisUrl.port || '6379'),
+    port: parseInt(redisUrl.port || '33545'),
     password: redisUrl.password || undefined,
   },
   defaultJobOptions: {
@@ -210,7 +210,7 @@ submissionQueue.on('stalled', (job) => {
 export const contestQueue = new Bull('contest-processing', {
   redis: {
     host: redisUrl.hostname,
-    port: parseInt(redisUrl.port || '6379'),
+    port: parseInt(redisUrl.port || '33545'),
     password: redisUrl.password || undefined,
   },
 });

@@ -4,7 +4,7 @@ import { logger } from '../utils/logger';
 const parsed = new URL(process.env.REDIS_URL as string);
 const baseOptions = {
   host: parsed.hostname,
-  port: parseInt(parsed.port || '6379'),
+  port: parseInt(parsed.port || '33545'),
   password: parsed.password || undefined,
   tls: parsed.protocol === 'rediss:' ? {} : undefined,
   maxRetriesPerRequest: null as any,

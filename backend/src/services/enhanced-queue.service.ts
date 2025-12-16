@@ -98,7 +98,7 @@ export class EnhancedQueueService {
       const queue = new Bull(queueName, {
         redis: {
           host: url.hostname,
-          port: parseInt(url.port || '6379'),
+          port: parseInt(url.port || '33545'),
           password: url.password || undefined,
         },
         defaultJobOptions: config.defaultJobOptions,
