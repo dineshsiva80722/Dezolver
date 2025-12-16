@@ -28,6 +28,7 @@
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "strictPropertyInitialization": false,
+    "useUnknownInCatchVariables": false,
     "baseUrl": "./src",
     "paths": {
       "@controllers/*": ["controllers/*"],

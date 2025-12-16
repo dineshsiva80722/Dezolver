@@ -137,10 +137,10 @@ export class Employee {
   is_active: boolean;
 
   @Column({ name: 'termination_date', type: 'date', nullable: true })
-  termination_date: Date;
+  termination_date: Date | null;
 
   @Column({ name: 'termination_reason', type: 'text', nullable: true })
-  termination_reason: string;
+  termination_reason: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;

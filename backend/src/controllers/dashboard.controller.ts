@@ -4,7 +4,7 @@ import { User } from '../models/User.entity';
 import { Submission } from '../models/Submission.entity';
 import { Contest } from '../models/Contest.entity';
 import { AuthRequest } from '../middleware/auth.middleware';
-import { SubmissionStatus, ContestStatus } from '../types/enums';
+import { SubmissionVerdict, ContestStatus } from '../types/enums';
 
 const userRepository = AppDataSource.getRepository(User);
 const submissionRepository = AppDataSource.getRepository(Submission);
@@ -35,7 +35,7 @@ export class DashboardController {
       const acceptedSubmissions = await submissionRepository.count({
         where: { 
           user_id: userId,
-          status: SubmissionStatus.ACCEPTED
+          verdict: SubmissionVerdict.ACCEPTED
         }
       });
 

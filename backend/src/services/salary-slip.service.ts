@@ -179,17 +179,18 @@ export class SalarySlipService {
     currentY += 15;
 
     const earnings = payrollRecord.earnings;
-    Object.keys(earnings).forEach(key => {
-      if (key === 'custom_allowances' && Array.isArray(earnings[key])) {
-        earnings[key].forEach((allowance: any) => {
+    const earningKeys = Object.keys(earnings) as (keyof typeof earnings)[];
+    earningKeys.forEach(key => {
+      if (key === 'custom_allowances' && Array.isArray(earnings.custom_allowances)) {
+        earnings.custom_allowances.forEach((allowance: any) => {
           doc.text(allowance.name || key, 60, currentY + 5)
              .text(allowance.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 }), 210, currentY + 5);
           currentY += 15;
         });
-      } else if (typeof earnings[key] === 'number' && earnings[key] > 0) {
+      } else if (typeof earnings[key] === 'number' && (earnings[key] as number) > 0) {
         const displayName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         doc.text(displayName, 60, currentY + 5)
-           .text(earnings[key].toLocaleString('en-IN', { minimumFractionDigits: 2 }), 210, currentY + 5);
+           .text((earnings[key] as number).toLocaleString('en-IN', { minimumFractionDigits: 2 }), 210, currentY + 5);
         currentY += 15;
       }
     });
@@ -228,9 +229,10 @@ export class SalarySlipService {
     currentY += 20;
 
     const deductions = payrollRecord.deductions;
-    Object.keys(deductions).forEach(key => {
-      if (key === 'custom_deductions' && Array.isArray(deductions[key])) {
-        deductions[key].forEach((deduction: any) => {
+    const deductionKeys = Object.keys(deductions) as (keyof typeof deductions)[];
+    deductionKeys.forEach(key => {
+      if (key === 'custom_deductions' && Array.isArray(deductions.custom_deductions)) {
+        deductions.custom_deductions.forEach((deduction: any) => {
           if (deduction.amount > 0) {
             doc.fontSize(9)
                .font('Helvetica')
@@ -239,12 +241,12 @@ export class SalarySlipService {
             currentY += 15;
           }
         });
-      } else if (typeof deductions[key] === 'number' && deductions[key] > 0) {
+      } else if (typeof deductions[key] === 'number' && (deductions[key] as number) > 0) {
         const displayName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         doc.fontSize(9)
            .font('Helvetica')
            .text(displayName, 335, currentY + 5)
-           .text(deductions[key].toLocaleString('en-IN', { minimumFractionDigits: 2 }), 485, currentY + 5);
+           .text((deductions[key] as number).toLocaleString('en-IN', { minimumFractionDigits: 2 }), 485, currentY + 5);
         currentY += 15;
       }
     });

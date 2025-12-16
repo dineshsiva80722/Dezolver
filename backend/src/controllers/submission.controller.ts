@@ -116,7 +116,7 @@ export class SubmissionController {
         }
         
         // For practice problems, only show verdict
-        const { source_code, ...publicData } = submission;
+        const { code, ...publicData } = submission as any;
         return res.json({
           success: true,
           data: publicData
@@ -290,7 +290,7 @@ export class SubmissionController {
         submissionId: submission.id,
         problemId: submission.problem_id,
         language: submission.language,
-        sourceCode: submission.source_code,
+        sourceCode: submission.code,
         timeLimit: submission.problem.time_limit,
         memoryLimit: submission.problem.memory_limit
       });

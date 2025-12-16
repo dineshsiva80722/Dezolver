@@ -64,6 +64,9 @@ export class CompanyBankDetails {
     contact_person?: string;
     phone_number?: string;
     email?: string;
+    is_verified?: boolean;
+    verification_date?: string;
+    verified_by?: string;
   };
 
   @Column({ name: 'created_by_id' })

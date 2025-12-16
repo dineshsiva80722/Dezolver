@@ -15,6 +15,7 @@ import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 import { Submission } from './Submission.entity';
 import { Contest } from './Contest.entity';
 import { AssessmentAttempt } from './AssessmentAttempt.entity';
+import { Organization } from './Organization.entity';
 
 export enum UserRole {
   USER = 'user',
@@ -23,6 +24,15 @@ export enum UserRole {
   SUPER_ADMIN = 'super_admin',
   PROBLEM_SETTER = 'problem_setter',
   MODERATOR = 'moderator',
+  ORGANIZATION_MANAGER = 'organization_manager',
+  HR_MANAGER = 'hr_manager',
+  PLATFORM_ADMIN = 'platform_admin',
+}
+
+export enum UserTier {
+  USER = 'user',
+  MANAGER = 'manager',
+  PLATFORM = 'platform',
 }
 
 @Entity('users')
@@ -82,6 +92,13 @@ export class User {
   })
   role: UserRole;
 
+  @Column({
+    type: 'enum',
+    enum: UserTier,
+    default: UserTier.USER,
+  })
+  tier: UserTier;
+
   @Column({ name: 'is_active', default: true })
   is_active: boolean;
 
@@ -91,6 +108,9 @@ export class User {
   @Column({ name: 'is_banned', default: false })
   is_banned: boolean;
 
+  @Column({ name: 'is_organization_owner', default: false })
+  is_organization_owner: boolean;
+
   @Column({ name: 'verification_token', length: 255, nullable: true })
   verification_token: string;
 
@@ -99,6 +119,12 @@ export class User {
 
   @Column({ name: 'reset_password_expires', type: 'timestamp', nullable: true })
   reset_password_expires: Date;
+
+  @Column({ name: 'invited_by_id', type: 'uuid', nullable: true })
+  invited_by_id: string;
+
+  @Column({ name: 'invitation_accepted_at', type: 'timestamp', nullable: true })
+  invitation_accepted_at: Date;
 
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
@@ -145,4 +171,11 @@ export class User {
 
   @OneToMany(() => AssessmentAttempt, attempt => attempt.user)
   assessmentAttempts: AssessmentAttempt[];
+
+  @Column({ name: 'organization_id', type: 'uuid', nullable: true })
+  organization_id: string | null;
+
+  @ManyToOne(() => Organization, org => org.users, { nullable: true })
+  @JoinColumn({ name: 'organization_id' })
+  organization: Organization | null;
 }

@@ -74,9 +74,14 @@ export class MockJudgeService {
         };
       } else {
         // Simulate various error types
-        const errorTypes = [
+        const errorTypes: Array<{
+          stdout: string | null;
+          stderr: string | null;
+          status: { id: number; description: string };
+        }> = [
           {
-            stdout: params.expectedOutput.replace(/\d/g, '0'), // Wrong answer
+            stdout: params.expectedOutput.replace(/\d/g, '0'),
+            stderr: null,
             status: { id: 4, description: 'Wrong Answer' }
           },
           {

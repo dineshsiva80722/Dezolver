@@ -1,12 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { UserRole } from '../types/enums';
+import { UserTier } from '../models/User.entity';
 
 export interface AuthRequest extends Request {
   user?: {
     userId: string;
     username: string;
     role: UserRole;
+    tier?: UserTier;
+    organization_id?: string;
+    is_organization_owner?: boolean;
   };
 }
 

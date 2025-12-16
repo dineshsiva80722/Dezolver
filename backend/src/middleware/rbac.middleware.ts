@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { UserRole, UserTier } from '../models/User.entity';
+import { UserRole } from '../types/enums';
+import { UserTier } from '../models/User.entity';
 import { OrganizationService } from '../services/organization.service';
 import { AuthRequest } from './auth.middleware';
 
@@ -24,7 +25,7 @@ export const requirePlatformAdmin = (req: RBACRequest, res: Response, next: Next
     });
   }
 
-  if (req.user.tier !== UserTier.PLATFORM || req.user.role !== UserRole.PLATFORM_ADMIN) {
+  if (req.user.tier !== UserTier.PLATFORM) {
     return res.status(403).json({
       success: false,
       message: 'Platform administrator access required'
@@ -198,6 +199,12 @@ export const enforceUserLimits = async (req: RBACRequest, res: Response, next: N
 
   try {
     const organizationService = new OrganizationService();
+    if (!req.user.organization_id) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found for user'
+      });
+    }
     const limitCheck = await organizationService.checkUserLimit(req.user.organization_id);
     
     // If this is a user creation request, check limits
@@ -226,7 +233,7 @@ export const enforceUserLimits = async (req: RBACRequest, res: Response, next: N
 
 // Role hierarchy check
 export const requireRoleHierarchy = (minimumRole: UserRole) => {
-  const roleHierarchy = {
+  const roleHierarchy: Record<UserRole, number> = {
     [UserRole.USER]: 1,
     [UserRole.HR_MANAGER]: 2,
     [UserRole.ORGANIZATION_MANAGER]: 3,
@@ -234,6 +241,8 @@ export const requireRoleHierarchy = (minimumRole: UserRole) => {
     [UserRole.ADMIN]: 3, // Legacy admin
     [UserRole.MODERATOR]: 2,
     [UserRole.PROBLEM_SETTER]: 2,
+    [UserRole.MANAGER]: 3,
+    [UserRole.SUPER_ADMIN]: 4,
   };
 
   return (req: RBACRequest, res: Response, next: NextFunction) => {
@@ -244,8 +253,8 @@ export const requireRoleHierarchy = (minimumRole: UserRole) => {
       });
     }
 
-    const userLevel = roleHierarchy[req.user.role] || 1;
-    const requiredLevel = roleHierarchy[minimumRole] || 1;
+    const userLevel = roleHierarchy[req.user.role];
+    const requiredLevel = roleHierarchy[minimumRole];
 
     if (userLevel < requiredLevel) {
       return res.status(403).json({
@@ -274,6 +283,12 @@ export const requireActiveSubscription = async (req: RBACRequest, res: Response,
 
   try {
     const organizationService = new OrganizationService();
+    if (!req.user.organization_id) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found for user'
+      });
+    }
     const organization = await organizationService.getOrganizationById(req.user.organization_id);
     
     if (!organization) {

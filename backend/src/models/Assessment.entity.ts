@@ -65,10 +65,10 @@ export class Assessment {
   is_public: boolean;
 
   @Column({ name: 'start_time', type: 'timestamp', nullable: true })
-  start_time: Date;
+  start_time: Date | null;
 
   @Column({ name: 'end_time', type: 'timestamp', nullable: true })
-  end_time: Date;
+  end_time: Date | null;
 
   @Column({ name: 'created_by', type: 'uuid' })
   created_by: string;

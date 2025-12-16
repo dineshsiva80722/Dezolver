@@ -66,7 +66,7 @@ export class DatabaseMonitor {
   getTypeORMStatus() {
     return {
       isInitialized: AppDataSource.isInitialized,
-      isConnected: AppDataSource.isInitialized && !AppDataSource.isDestroyed,
+      isConnected: AppDataSource.isInitialized,
       hasMetadata: AppDataSource.hasMetadata,
       entityMetadatas: AppDataSource.entityMetadatas.length,
     };

@@ -227,11 +227,12 @@ export class CertificateGenerationService {
 
     if (template.watermark_url) {
       try {
+        doc.opacity(0.1);
         doc.image(template.watermark_url, 0, 0, {
           width: template.template_config.layout.width,
           height: template.template_config.layout.height,
-          opacity: 0.1,
         });
+        doc.opacity(1);
       } catch (error) {
         console.warn('Failed to load watermark image:', error);
       }

@@ -4,7 +4,10 @@ export enum UserRole {
   ADMIN = 'admin',
   SUPER_ADMIN = 'super_admin',
   PROBLEM_SETTER = 'problem_setter',
-  MODERATOR = 'moderator'
+  MODERATOR = 'moderator',
+  ORGANIZATION_MANAGER = 'organization_manager',
+  HR_MANAGER = 'hr_manager',
+  PLATFORM_ADMIN = 'platform_admin'
 }
 
 export enum UserAddedBy {

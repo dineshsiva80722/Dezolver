@@ -331,10 +331,9 @@ export class EnhancedQueueService {
       // Update submission in database
       await submissionRepository.update(submissionId, {
         verdict,
-        points,
-        execution_time: Math.max(...results.map(r => parseFloat(r.time) || 0)),
+        score: points,
+        time_used: Math.max(...results.map(r => parseFloat(r.time) || 0)),
         memory_used: Math.max(...results.map(r => r.memory || 0)),
-        compile_output: results.find(r => r.compile_output)?.compile_output || null,
         error_message: results.find(r => r.stderr)?.stderr || null,
       });
 
@@ -508,7 +507,7 @@ export class EnhancedQueueService {
       const completed = await queue.getCompleted();
       const failed = await queue.getFailed();
       const delayed = await queue.getDelayed();
-      const paused = await queue.getPaused();
+      const isPaused = await queue.isPaused();
 
       metrics[name] = {
         waiting: waiting.length,
@@ -516,7 +515,7 @@ export class EnhancedQueueService {
         completed: completed.length,
         failed: failed.length,
         delayed: delayed.length,
-        paused: paused.length,
+        paused: isPaused ? 1 : 0,
       };
     }
 

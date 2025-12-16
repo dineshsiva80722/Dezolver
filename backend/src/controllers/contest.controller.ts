@@ -251,7 +251,8 @@ export class ContestController {
       };
 
       const contest = contestRepository.create(contestData);
-      const savedContest = await contestRepository.save(contest);
+      const savedContestRes = await contestRepository.save(contest);
+      const savedContest = Array.isArray(savedContestRes) ? savedContestRes[0] : savedContestRes;
 
       // Associate contest with group
       await AppDataSource.query(`

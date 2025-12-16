@@ -182,7 +182,16 @@ export class OrganizationService {
   }
 
   private getDefaultFeatures(plan: OrganizationPlan) {
-    const features = {
+    const features: {
+      hr_management: boolean;
+      payroll_processing: boolean;
+      certificate_automation: boolean;
+      advanced_analytics: boolean;
+      api_access: boolean;
+      custom_branding: boolean;
+      sso_integration: boolean;
+      bulk_operations: boolean;
+    } = {
       hr_management: true,
       payroll_processing: false,
       certificate_automation: true,
@@ -206,7 +215,16 @@ export class OrganizationService {
           bulk_operations: true
         };
       case OrganizationPlan.UNLIMITED:
-        return Object.fromEntries(Object.keys(features).map(key => [key, true]));
+        return {
+          hr_management: true,
+          payroll_processing: true,
+          certificate_automation: true,
+          advanced_analytics: true,
+          api_access: true,
+          custom_branding: true,
+          sso_integration: true,
+          bulk_operations: true,
+        };
       default:
         return features;
     }

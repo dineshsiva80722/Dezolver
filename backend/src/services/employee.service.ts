@@ -173,7 +173,7 @@ export class EmployeeService {
 
     employee.is_active = false;
     employee.termination_date = terminationDate;
-    employee.termination_reason = reason;
+    employee.termination_reason = reason || null;
 
     await this.employeeRepository.save(employee);
     return true;

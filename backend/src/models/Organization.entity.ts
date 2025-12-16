@@ -144,9 +144,8 @@ export class Organization {
   updated_at: Date;
 
   // Relations
-  // Note: Users don't have a direct organization relation in the User entity yet
-  // @OneToMany(() => User, user => user.organization)
-  // users: User[];
+  @OneToMany(() => User, user => user.organization)
+  users: User[];
 
   @OneToMany(() => Subscription, subscription => subscription.organization)
   subscriptions: Subscription[];
