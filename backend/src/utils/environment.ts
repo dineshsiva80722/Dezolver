@@ -5,7 +5,8 @@ const requiredEnvVars = [
   'JWT_SECRET',
   'JWT_REFRESH_SECRET',
   'DB_PASSWORD',
-  'SESSION_SECRET'
+  'SESSION_SECRET',
+  'REDIS_URL'
 ];
 
 // Environment variables that should not use default values in production
@@ -85,8 +86,7 @@ export function getEnvironmentConfig() {
     
     // Redis configuration
     redis: {
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
+      url: process.env.REDIS_URL!,
       password: process.env.REDIS_PASSWORD,
       db: parseInt(process.env.REDIS_DB || '0'),
       maxConnections: parseInt(process.env.REDIS_MAX_CONNECTIONS || '50'),

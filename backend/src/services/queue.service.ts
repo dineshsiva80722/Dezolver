@@ -14,22 +14,21 @@ const problemRepository = AppDataSource.getRepository(Problem);
 const userRepository = AppDataSource.getRepository(User);
 
 // Create submission processing queue
-export const submissionQueue = new Bull('submission-processing', {
-  redis: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379'),
-    password: process.env.REDIS_PASSWORD
-  },
-  defaultJobOptions: {
-    removeOnComplete: true,
-    removeOnFail: false,
-    attempts: 3,
-    backoff: {
-      type: 'exponential',
-      delay: 2000
+export const submissionQueue = new Bull(
+  'submission-processing',
+  process.env.REDIS_URL as string,
+  {
+    defaultJobOptions: {
+      removeOnComplete: true,
+      removeOnFail: false,
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 2000
+      }
     }
   }
-});
+);
 
 // Process submission jobs
 submissionQueue.process('judge-submission', async (job) => {
@@ -206,13 +205,10 @@ submissionQueue.on('stalled', (job) => {
 });
 
 // Contest submission queue for handling contest-specific logic
-export const contestQueue = new Bull('contest-processing', {
-  redis: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379'),
-    password: process.env.REDIS_PASSWORD
-  }
-});
+export const contestQueue = new Bull(
+  'contest-processing',
+  process.env.REDIS_URL as string
+);
 
 // Process contest events
 contestQueue.process('update-standings', async (job) => {

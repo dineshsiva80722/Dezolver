@@ -94,12 +94,7 @@ export const AppDataSource = new DataSource({
   // Cache configuration for better performance
   cache: process.env.NODE_ENV === 'production' ? {
     type: 'redis',
-    options: {
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
-      password: process.env.REDIS_PASSWORD,
-      db: parseInt(process.env.REDIS_CACHE_DB || '1'),
-    },
+    options: { url: process.env.REDIS_URL },
     duration: 30000, // 30 seconds default cache
   } : false,
   

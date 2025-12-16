@@ -1,5 +1,4 @@
-import Bull, { Job, Queue, QueueOptions, JobOptions } from 'bull';
-import { redis, pubClient, subClient } from '../config/redis';
+import Bull, { Job, Queue, JobOptions } from 'bull';
 import { logger } from '../utils/logger';
 import { judge0Cluster } from './judge0-cluster.service';
 import { AppDataSource } from '../config/database';
@@ -41,7 +40,6 @@ export class EnhancedQueueService {
   // Queue configurations
   private readonly queueConfigs = {
     'contest-submissions': {
-      redis: { host: process.env.REDIS_HOST, port: parseInt(process.env.REDIS_PORT || '6379') },
       defaultJobOptions: {
         removeOnComplete: 100,
         removeOnFail: 50,
@@ -55,7 +53,6 @@ export class EnhancedQueueService {
       },
     },
     'practice-submissions': {
-      redis: { host: process.env.REDIS_HOST, port: parseInt(process.env.REDIS_PORT || '6379') },
       defaultJobOptions: {
         removeOnComplete: 50,
         removeOnFail: 25,
@@ -69,7 +66,6 @@ export class EnhancedQueueService {
       },
     },
     'batch-processing': {
-      redis: { host: process.env.REDIS_HOST, port: parseInt(process.env.REDIS_PORT || '6379') },
       defaultJobOptions: {
         removeOnComplete: 25,
         removeOnFail: 10,
@@ -98,7 +94,10 @@ export class EnhancedQueueService {
 
     // Create queues
     for (const [queueName, config] of Object.entries(this.queueConfigs)) {
-      const queue = new Bull(queueName, config as QueueOptions);
+      const queue = new Bull(queueName, process.env.REDIS_URL as string, {
+        defaultJobOptions: config.defaultJobOptions,
+        settings: config.settings,
+      });
       
       // Set up queue event handlers
       this.setupQueueEventHandlers(queue, queueName);
