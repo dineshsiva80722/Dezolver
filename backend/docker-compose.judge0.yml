@@ -1,0 +1,37 @@
+version: '3.7'
+
+services:
+  judge0:
+    image: judge0/judge0:1.13.0
+    platform: linux/amd64
+    ports:
+      - "2358:2358"
+    environment:
+      - RAILS_ENV=production
+      - DATABASE_URL=postgresql://judge0:YourPasswordHere@db:5432/judge0
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_PASSWORD=YourPasswordHere
+      - POSTGRES_DB=judge0
+      - POSTGRES_USER=judge0
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:6
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
