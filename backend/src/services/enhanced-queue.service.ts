@@ -1,4 +1,4 @@
-import Bull, { Job, Queue, JobOptions } from 'bull';
+import Bull, { Job, Queue, JobOptions, QueueOptions } from 'bull';
 import { logger } from '../utils/logger';
 import { judge0Cluster } from './judge0-cluster.service';
 import { AppDataSource } from '../config/database';
@@ -94,10 +94,16 @@ export class EnhancedQueueService {
 
     // Create queues
     for (const [queueName, config] of Object.entries(this.queueConfigs)) {
-      const queue = new Bull(queueName, process.env.REDIS_URL as string, {
+      const url = new URL(process.env.REDIS_URL as string);
+      const queue = new Bull(queueName, {
+        redis: {
+          host: url.hostname,
+          port: parseInt(url.port || '6379'),
+          password: url.password || undefined,
+        },
         defaultJobOptions: config.defaultJobOptions,
         settings: config.settings,
-      });
+      } as QueueOptions);
       
       // Set up queue event handlers
       this.setupQueueEventHandlers(queue, queueName);

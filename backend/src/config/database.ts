@@ -92,11 +92,19 @@ export const AppDataSource = new DataSource({
   maxQueryExecutionTime: parseInt(process.env.DB_MAX_QUERY_TIME || '30000'),
   
   // Cache configuration for better performance
-  cache: process.env.NODE_ENV === 'production' ? {
-    type: 'redis',
-    options: { url: process.env.REDIS_URL },
-    duration: 30000, // 30 seconds default cache
-  } : false,
+  cache: process.env.NODE_ENV === 'production' ? (() => {
+    const url = new URL(process.env.REDIS_URL as string);
+    return {
+      type: 'redis',
+      options: {
+        host: url.hostname,
+        port: parseInt(url.port || '6379'),
+        password: url.password || undefined,
+        db: parseInt(process.env.REDIS_CACHE_DB || '1'),
+      },
+      duration: 30000,
+    };
+  })() : false,
   
   synchronize: false, // Always false in production
   logging: process.env.NODE_ENV === 'development' ? ['query', 'error'] : ['error'],

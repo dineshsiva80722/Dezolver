@@ -1,20 +1,19 @@
 import Redis from 'ioredis';
 import { logger } from '../utils/logger';
 
-export const redis = new Redis(process.env.REDIS_URL as string, {
-  maxRetriesPerRequest: null,
+const parsed = new URL(process.env.REDIS_URL as string);
+const baseOptions = {
+  host: parsed.hostname,
+  port: parseInt(parsed.port || '6379'),
+  password: parsed.password || undefined,
+  tls: parsed.protocol === 'rediss:' ? {} : undefined,
+  maxRetriesPerRequest: null as any,
   enableOfflineQueue: false,
-});
+};
 
-export const pubClient = new Redis(process.env.REDIS_URL as string, {
-  maxRetriesPerRequest: null,
-  enableOfflineQueue: false,
-});
-
-export const subClient = new Redis(process.env.REDIS_URL as string, {
-  maxRetriesPerRequest: null,
-  enableOfflineQueue: false,
-});
+export const redis = new Redis(baseOptions);
+export const pubClient = new Redis(baseOptions);
+export const subClient = new Redis(baseOptions);
 
 redis.on('connect', () => {
   logger.info('Redis connected successfully');
