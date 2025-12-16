@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   ManyToOne,
   OneToMany,
-  JoinColumn,
+  JoinColumn
 } from 'typeorm';
 import { User } from './User.entity';
 import { Problem } from './Problem.entity';
@@ -48,7 +48,7 @@ export class Submission {
   @Column({
     type: 'enum',
     enum: SubmissionVerdict,
-    default: SubmissionVerdict.PENDING,
+    default: SubmissionVerdict.PENDING
   })
   verdict: SubmissionVerdict;
 

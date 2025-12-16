@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  Index,
+  Index
 } from 'typeorm';
 import { User } from './User.entity';
 import { Problem } from './Problem.entity';
@@ -18,14 +18,14 @@ export enum CertificateTriggerType {
   ASSESSMENT_PASS = 'assessment_pass',
   CONTEST_COMPLETION = 'contest_completion',
   PROBLEM_SOLVED = 'problem_solved',
-  MANUAL_APPROVAL = 'manual_approval',
+  MANUAL_APPROVAL = 'manual_approval'
 }
 
 export enum CertificateStatus {
   GENERATED = 'generated',
   SENT = 'sent',
   DOWNLOADED = 'downloaded',
-  REVOKED = 'revoked',
+  REVOKED = 'revoked'
 }
 
 @Entity('certificates')
@@ -77,14 +77,14 @@ export class Certificate {
 
   @Column({
     type: 'enum',
-    enum: CertificateTriggerType,
+    enum: CertificateTriggerType
   })
   trigger_type: CertificateTriggerType;
 
   @Column({
     type: 'enum',
     enum: CertificateStatus,
-    default: CertificateStatus.GENERATED,
+    default: CertificateStatus.GENERATED
   })
   status: CertificateStatus;
 

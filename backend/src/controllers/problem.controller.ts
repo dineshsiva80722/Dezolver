@@ -15,14 +15,14 @@ const userRepository = AppDataSource.getRepository(User);
 export class ProblemController {
   static async createProblem(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const { 
-        title, 
-        statement, 
-        input_format, 
-        output_format, 
-        constraints, 
-        difficulty, 
-        time_limit = 1000, 
+      const {
+        title,
+        statement,
+        input_format,
+        output_format,
+        constraints,
+        difficulty,
+        time_limit = 1000,
         memory_limit = 256,
         is_public = false,
         test_cases = []
@@ -67,7 +67,7 @@ export class ProblemController {
 
       // Create test cases if provided
       if (test_cases && test_cases.length > 0) {
-        const testCaseEntities = test_cases.map((tc: any) => 
+        const testCaseEntities = test_cases.map((tc: any) =>
           testCaseRepository.create({
             problem_id: savedProblem.id,
             input: tc.input,
@@ -76,7 +76,7 @@ export class ProblemController {
             points: tc.points || 0
           })
         );
-        
+
         await testCaseRepository.save(testCaseEntities);
       }
 
@@ -114,8 +114,10 @@ export class ProblemController {
       }
 
       // Check permissions
-      if (req.user?.role !== UserRole.ADMIN && 
-          (req.user?.role !== UserRole.PROBLEM_SETTER || problem.author_id !== req.user.userId)) {
+      if (
+        req.user?.role !== UserRole.ADMIN &&
+        (req.user?.role !== UserRole.PROBLEM_SETTER || problem.author_id !== req.user.userId)
+      ) {
         return res.status(403).json({
           success: false,
           message: 'You do not have permission to update this problem'
@@ -204,10 +206,13 @@ export class ProblemController {
       // Check if problem is public or user has permission to view
       if (!problem.is_public) {
         const user = userId ? await userRepository.findOne({ where: { id: userId } }) : null;
-        
-        if (!user || (user.role !== UserRole.ADMIN && 
-            user.role !== UserRole.PROBLEM_SETTER && 
-            problem.author_id !== userId)) {
+
+        if (
+          !user ||
+          (user.role !== UserRole.ADMIN &&
+            user.role !== UserRole.PROBLEM_SETTER &&
+            problem.author_id !== userId)
+        ) {
           return res.status(403).json({
             success: false,
             message: 'You do not have permission to view this problem'
@@ -216,20 +221,23 @@ export class ProblemController {
       }
 
       // Get submission statistics
-      const stats = await AppDataSource.query(`
+      const stats = await AppDataSource.query(
+        `
         SELECT 
           COUNT(DISTINCT user_id) as attempted_by,
           COUNT(CASE WHEN verdict = 'accepted' THEN 1 END) as accepted_count,
           COUNT(*) as total_submissions
         FROM submissions
         WHERE problem_id = $1
-      `, [problem.id]);
+      `,
+        [problem.id]
+      );
 
       // Get sample test cases
       const testCases = await testCaseRepository.find({
-        where: { 
+        where: {
           problem_id: problem.id,
-          is_sample: true 
+          is_sample: true
         },
         order: {
           created_at: 'ASC'
@@ -251,20 +259,21 @@ export class ProblemController {
 
   static async getProblems(req: Request, res: Response, next: NextFunction) {
     try {
-      const { 
-        page = 1, 
-        limit = 20, 
-        difficulty, 
-        tags, 
+      const {
+        page = 1,
+        limit = 20,
+        difficulty,
+        tags,
         search,
         sort = 'created_at',
-        order = 'DESC' 
+        order = 'DESC'
       } = req.query;
 
       const userId = (req as AuthRequest).user?.userId;
       const user = userId ? await userRepository.findOne({ where: { id: userId } }) : null;
 
-      const queryBuilder = problemRepository.createQueryBuilder('problem')
+      const queryBuilder = problemRepository
+        .createQueryBuilder('problem')
         .leftJoinAndSelect('problem.author', 'author');
 
       // Filter by public problems or user's own problems
@@ -281,19 +290,20 @@ export class ProblemController {
 
       // Search by title or statement
       if (search) {
-        queryBuilder.andWhere(
-          '(problem.title ILIKE :search OR problem.statement ILIKE :search)',
-          { search: `%${search}%` }
-        );
+        queryBuilder.andWhere('(problem.title ILIKE :search OR problem.statement ILIKE :search)', {
+          search: `%${search}%`
+        });
       }
 
       // TODO: Add tag filtering when tags are implemented
 
       // Sorting
       const allowedSortFields = ['created_at', 'title', 'difficulty', 'acceptance_rate'];
-      const sortField = allowedSortFields.includes(sort as string) ? sort as string : 'created_at';
+      const sortField = allowedSortFields.includes(sort as string)
+        ? (sort as string)
+        : 'created_at';
       const sortOrder = order === 'ASC' ? 'ASC' : 'DESC';
-      
+
       queryBuilder.orderBy(`problem.${sortField}`, sortOrder);
 
       // Pagination
@@ -306,8 +316,9 @@ export class ProblemController {
       const [problems, total] = await queryBuilder.getManyAndCount();
 
       // Get submission statistics for each problem
-      const problemIds = problems.map(p => p.id);
-      const stats = await AppDataSource.query(`
+      const problemIds = problems.map((p) => p.id);
+      const stats = await AppDataSource.query(
+        `
         SELECT 
           problem_id,
           COUNT(DISTINCT user_id) as attempted_by,
@@ -316,14 +327,16 @@ export class ProblemController {
         FROM submissions
         WHERE problem_id = ANY($1)
         GROUP BY problem_id
-      `, [problemIds]);
+      `,
+        [problemIds]
+      );
 
       const statsMap = stats.reduce((acc: any, stat: any) => {
         acc[stat.problem_id] = stat;
         return acc;
       }, {});
 
-      const problemsWithStats = problems.map(problem => ({
+      const problemsWithStats = problems.map((problem) => ({
         ...problem,
         statistics: statsMap[problem.id] || {
           attempted_by: 0,
@@ -353,7 +366,7 @@ export class ProblemController {
       const { status } = req.query; // 'solved', 'attempted', 'unsolved'
 
       let query = '';
-      let params = [userId];
+      const params = [userId];
 
       switch (status) {
         case 'solved':
@@ -372,7 +385,7 @@ export class ProblemController {
             ORDER BY s.first_solved_at DESC
           `;
           break;
-          
+
         case 'attempted':
           query = `
             SELECT DISTINCT p.*,
@@ -386,7 +399,7 @@ export class ProblemController {
             ORDER BY p.created_at DESC
           `;
           break;
-          
+
         case 'unsolved':
           query = `
             SELECT p.*,
@@ -400,7 +413,7 @@ export class ProblemController {
             ORDER BY p.created_at DESC
           `;
           break;
-          
+
         default:
           query = `
             SELECT p.*,

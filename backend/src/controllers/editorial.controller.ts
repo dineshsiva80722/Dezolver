@@ -7,13 +7,23 @@ import DOMPurify from 'isomorphic-dompurify';
 export class EditorialController {
   static async createEditorial(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const { problem_id, content, solution_approach, time_complexity, space_complexity, code_snippets } = req.body;
+      const {
+        problem_id,
+        content,
+        solution_approach,
+        time_complexity,
+        space_complexity,
+        code_snippets
+      } = req.body;
       const userId = req.user!.userId;
 
       // Check if user has permission (admin, moderator, or problem author)
-      const problems = await AppDataSource.query(`
+      const problems = await AppDataSource.query(
+        `
         SELECT author_id FROM problems WHERE id = $1
-      `, [problem_id]);
+      `,
+        [problem_id]
+      );
 
       if (problems.length === 0) {
         return res.status(404).json({
@@ -24,7 +34,8 @@ export class EditorialController {
 
       const problem = problems[0];
       const isAuthor = problem.author_id === userId;
-      const isAdminOrMod = req.user!.role === UserRole.ADMIN || req.user!.role === UserRole.MODERATOR;
+      const isAdminOrMod =
+        req.user!.role === UserRole.ADMIN || req.user!.role === UserRole.MODERATOR;
 
       if (!isAuthor && !isAdminOrMod) {
         return res.status(403).json({
@@ -34,9 +45,12 @@ export class EditorialController {
       }
 
       // Check if editorial already exists
-      const existingEditorials = await AppDataSource.query(`
+      const existingEditorials = await AppDataSource.query(
+        `
         SELECT id FROM editorials WHERE problem_id = $1
-      `, [problem_id]);
+      `,
+        [problem_id]
+      );
 
       if (existingEditorials.length > 0) {
         return res.status(400).json({
@@ -51,7 +65,8 @@ export class EditorialController {
       const sanitizedContent = DOMPurify.sanitize(htmlContent);
 
       // Create editorial
-      const result = await AppDataSource.query(`
+      const result = await AppDataSource.query(
+        `
         INSERT INTO editorials (
           problem_id, 
           author_id, 
@@ -63,22 +78,27 @@ export class EditorialController {
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
-      `, [
-        problem_id,
-        userId,
-        sanitizedContent,
-        solution_approach,
-        time_complexity,
-        space_complexity,
-        JSON.stringify(code_snippets || [])
-      ]);
+      `,
+        [
+          problem_id,
+          userId,
+          sanitizedContent,
+          solution_approach,
+          time_complexity,
+          space_complexity,
+          JSON.stringify(code_snippets || [])
+        ]
+      );
 
       const editorial = result[0];
 
       // Get author info
-      const authorInfo = await AppDataSource.query(`
+      const authorInfo = await AppDataSource.query(
+        `
         SELECT username, full_name, avatar_url FROM users WHERE id = $1
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       editorial.author = authorInfo[0];
 
@@ -95,16 +115,20 @@ export class EditorialController {
   static async updateEditorial(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const { content, solution_approach, time_complexity, space_complexity, code_snippets } = req.body;
+      const { content, solution_approach, time_complexity, space_complexity, code_snippets } =
+        req.body;
       const userId = req.user!.userId;
 
       // Get editorial
-      const editorials = await AppDataSource.query(`
+      const editorials = await AppDataSource.query(
+        `
         SELECT e.*, p.author_id as problem_author_id
         FROM editorials e
         JOIN problems p ON e.problem_id = p.id
         WHERE e.id = $1
-      `, [id]);
+      `,
+        [id]
+      );
 
       if (editorials.length === 0) {
         return res.status(404).json({
@@ -116,7 +140,8 @@ export class EditorialController {
       const editorial = editorials[0];
       const isAuthor = editorial.author_id === userId;
       const isProblemAuthor = editorial.problem_author_id === userId;
-      const isAdminOrMod = req.user!.role === UserRole.ADMIN || req.user!.role === UserRole.MODERATOR;
+      const isAdminOrMod =
+        req.user!.role === UserRole.ADMIN || req.user!.role === UserRole.MODERATOR;
 
       if (!isAuthor && !isProblemAuthor && !isAdminOrMod) {
         return res.status(403).json({
@@ -131,7 +156,8 @@ export class EditorialController {
       const sanitizedContent = DOMPurify.sanitize(htmlContent);
 
       // Update editorial
-      const updated = await AppDataSource.query(`
+      const updated = await AppDataSource.query(
+        `
         UPDATE editorials
         SET 
           content = $1,
@@ -142,14 +168,16 @@ export class EditorialController {
           updated_at = CURRENT_TIMESTAMP
         WHERE id = $6
         RETURNING *
-      `, [
-        sanitizedContent,
-        solution_approach,
-        time_complexity,
-        space_complexity,
-        JSON.stringify(code_snippets || []),
-        id
-      ]);
+      `,
+        [
+          sanitizedContent,
+          solution_approach,
+          time_complexity,
+          space_complexity,
+          JSON.stringify(code_snippets || []),
+          id
+        ]
+      );
 
       res.json({
         success: true,
@@ -165,7 +193,8 @@ export class EditorialController {
     try {
       const { problem_id } = req.params;
 
-      const editorials = await AppDataSource.query(`
+      const editorials = await AppDataSource.query(
+        `
         SELECT 
           e.*,
           u.username,
@@ -177,7 +206,9 @@ export class EditorialController {
         JOIN users u ON e.author_id = u.id
         JOIN problems p ON e.problem_id = p.id
         WHERE e.problem_id = $1
-      `, [problem_id]);
+      `,
+        [problem_id]
+      );
 
       if (editorials.length === 0) {
         return res.status(404).json({
@@ -190,11 +221,14 @@ export class EditorialController {
       editorial.code_snippets = JSON.parse(editorial.code_snippets || '[]');
 
       // Get related solutions count
-      const solutionCount = await AppDataSource.query(`
+      const solutionCount = await AppDataSource.query(
+        `
         SELECT COUNT(*) as count
         FROM editorial_solutions
         WHERE editorial_id = $1 AND is_approved = true
-      `, [editorial.id]);
+      `,
+        [editorial.id]
+      );
 
       editorial.solution_count = parseInt(solutionCount[0].count);
 
@@ -213,9 +247,12 @@ export class EditorialController {
       const userId = req.user!.userId;
 
       // Check if editorial exists
-      const editorials = await AppDataSource.query(`
+      const editorials = await AppDataSource.query(
+        `
         SELECT id FROM editorials WHERE id = $1
-      `, [editorial_id]);
+      `,
+        [editorial_id]
+      );
 
       if (editorials.length === 0) {
         return res.status(404).json({
@@ -225,10 +262,13 @@ export class EditorialController {
       }
 
       // Check if user already submitted a solution
-      const existingSolutions = await AppDataSource.query(`
+      const existingSolutions = await AppDataSource.query(
+        `
         SELECT id FROM editorial_solutions
         WHERE editorial_id = $1 AND user_id = $2
-      `, [editorial_id, userId]);
+      `,
+        [editorial_id, userId]
+      );
 
       if (existingSolutions.length > 0) {
         return res.status(400).json({
@@ -238,11 +278,14 @@ export class EditorialController {
       }
 
       // Create solution
-      const result = await AppDataSource.query(`
+      const result = await AppDataSource.query(
+        `
         INSERT INTO editorial_solutions (editorial_id, user_id, language, code, explanation)
         VALUES ($1, $2, $3, $4, $5)
         RETURNING *
-      `, [editorial_id, userId, language, code, explanation]);
+      `,
+        [editorial_id, userId, language, code, explanation]
+      );
 
       res.status(201).json({
         success: true,
@@ -259,8 +302,8 @@ export class EditorialController {
       const { editorial_id } = req.params;
       const { page = 1, limit = 10, language } = req.query;
 
-      let whereConditions = ['es.editorial_id = $1', 'es.is_approved = true'];
-      let params: any[] = [editorial_id];
+      const whereConditions = ['es.editorial_id = $1', 'es.is_approved = true'];
+      const params: any[] = [editorial_id];
       let paramCount = 1;
 
       if (language) {
@@ -310,11 +353,14 @@ export class EditorialController {
       const userId = (req as AuthRequest).user?.userId;
       if (userId && solutions.length > 0) {
         const solutionIds = solutions.map((s: any) => s.id);
-        const userVotes = await AppDataSource.query(`
+        const userVotes = await AppDataSource.query(
+          `
           SELECT solution_id, vote
           FROM editorial_solution_votes
           WHERE user_id = $1 AND solution_id = ANY($2)
-        `, [userId, solutionIds]);
+        `,
+          [userId, solutionIds]
+        );
 
         const voteMap = userVotes.reduce((acc: any, v: any) => {
           acc[v.solution_id] = v.vote;
@@ -356,9 +402,12 @@ export class EditorialController {
       }
 
       // Check if solution exists
-      const solutions = await AppDataSource.query(`
+      const solutions = await AppDataSource.query(
+        `
         SELECT id FROM editorial_solutions WHERE id = $1
-      `, [id]);
+      `,
+        [id]
+      );
 
       if (solutions.length === 0) {
         return res.status(404).json({
@@ -369,28 +418,37 @@ export class EditorialController {
 
       if (vote === 0) {
         // Remove vote
-        await AppDataSource.query(`
+        await AppDataSource.query(
+          `
           DELETE FROM editorial_solution_votes
           WHERE user_id = $1 AND solution_id = $2
-        `, [userId, id]);
+        `,
+          [userId, id]
+        );
       } else {
         // Insert or update vote
-        await AppDataSource.query(`
+        await AppDataSource.query(
+          `
           INSERT INTO editorial_solution_votes (user_id, solution_id, vote)
           VALUES ($1, $2, $3)
           ON CONFLICT (user_id, solution_id)
           DO UPDATE SET vote = $3
-        `, [userId, id, vote]);
+        `,
+          [userId, id, vote]
+        );
       }
 
       // Get updated vote counts
-      const voteCounts = await AppDataSource.query(`
+      const voteCounts = await AppDataSource.query(
+        `
         SELECT 
           COALESCE(SUM(CASE WHEN vote = 1 THEN 1 ELSE 0 END), 0) as upvotes,
           COALESCE(SUM(CASE WHEN vote = -1 THEN 1 ELSE 0 END), 0) as downvotes
         FROM editorial_solution_votes
         WHERE solution_id = $1
-      `, [id]);
+      `,
+        [id]
+      );
 
       res.json({
         success: true,
@@ -419,11 +477,14 @@ export class EditorialController {
         });
       }
 
-      await AppDataSource.query(`
+      await AppDataSource.query(
+        `
         UPDATE editorial_solutions
         SET is_approved = $1, approved_at = CURRENT_TIMESTAMP
         WHERE id = $2
-      `, [approved, id]);
+      `,
+        [approved, id]
+      );
 
       res.json({
         success: true,

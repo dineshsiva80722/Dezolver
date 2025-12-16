@@ -43,7 +43,7 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
 
 export const sendVerificationEmail = async (email: string, token: string) => {
   const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
-  
+
   await sendEmail({
     to: email,
     subject: 'Verify your TechFolks account',
@@ -86,7 +86,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
 
 export const sendPasswordResetEmail = async (email: string, token: string) => {
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-  
+
   await sendEmail({
     to: email,
     subject: 'Password Reset Request - TechFolks',
@@ -134,11 +134,11 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
 };
 
 export const sendCertificateGeneratedEmail = async (
-  email: string, 
-  learnerName: string, 
-  courseName: string, 
-  certificateId: string, 
-  pdfUrl: string, 
+  email: string,
+  learnerName: string,
+  courseName: string,
+  certificateId: string,
+  pdfUrl: string,
   verificationUrl: string
 ) => {
   await sendEmail({
@@ -204,10 +204,10 @@ export const sendCertificateGeneratedEmail = async (
 };
 
 export const sendSalarySlipEmail = async (
-  email: string, 
-  employeeName: string, 
+  email: string,
+  employeeName: string,
   employeeId: string,
-  payPeriod: string, 
+  payPeriod: string,
   netSalary: number,
   salarySlipUrl: string
 ) => {
@@ -271,8 +271,8 @@ export const sendSalarySlipEmail = async (
 };
 
 export const sendPayrollProcessedNotification = async (
-  email: string, 
-  employeeName: string, 
+  email: string,
+  employeeName: string,
   payPeriod: string,
   paymentDate: Date
 ) => {

@@ -7,15 +7,22 @@ import { body, query, param } from 'express-validator';
 const router = Router();
 
 // Get discussions
-router.get('/',
+router.get(
+  '/',
   [
     query('problem_id').optional().isInt().withMessage('Invalid problem ID'),
     query('contest_id').optional().isInt().withMessage('Invalid contest ID'),
-    query('parent_id').optional().custom((value) => {
-      return value === 'null' || value === '0' || !isNaN(parseInt(value));
-    }).withMessage('Invalid parent ID'),
+    query('parent_id')
+      .optional()
+      .custom((value) => {
+        return value === 'null' || value === '0' || !isNaN(parseInt(value));
+      })
+      .withMessage('Invalid parent ID'),
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-    query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
+    query('limit')
+      .optional()
+      .isInt({ min: 1, max: 100 })
+      .withMessage('Limit must be between 1 and 100'),
     query('sort').optional().isIn(['created_at', 'upvotes']).withMessage('Invalid sort field'),
     query('order').optional().isIn(['ASC', 'DESC']).withMessage('Invalid sort order')
   ],
@@ -24,12 +31,21 @@ router.get('/',
 );
 
 // Create discussion (requires authentication)
-router.post('/',
+router.post(
+  '/',
   authenticate,
   [
-    body('title').optional().isString().trim().isLength({ min: 3, max: 200 })
+    body('title')
+      .optional()
+      .isString()
+      .trim()
+      .isLength({ min: 3, max: 200 })
       .withMessage('Title must be between 3 and 200 characters'),
-    body('content').notEmpty().isString().trim().isLength({ min: 10, max: 10000 })
+    body('content')
+      .notEmpty()
+      .isString()
+      .trim()
+      .isLength({ min: 10, max: 10000 })
       .withMessage('Content must be between 10 and 10000 characters'),
     body('problem_id').optional().isInt().withMessage('Invalid problem ID'),
     body('contest_id').optional().isInt().withMessage('Invalid contest ID'),
@@ -40,11 +56,16 @@ router.post('/',
 );
 
 // Update discussion (requires authentication)
-router.put('/:id',
+router.put(
+  '/:id',
   authenticate,
   [
     param('id').isInt().withMessage('Invalid discussion ID'),
-    body('content').notEmpty().isString().trim().isLength({ min: 10, max: 10000 })
+    body('content')
+      .notEmpty()
+      .isString()
+      .trim()
+      .isLength({ min: 10, max: 10000 })
       .withMessage('Content must be between 10 and 10000 characters')
   ],
   validate,
@@ -52,17 +73,17 @@ router.put('/:id',
 );
 
 // Delete discussion (requires authentication)
-router.delete('/:id',
+router.delete(
+  '/:id',
   authenticate,
-  [
-    param('id').isInt().withMessage('Invalid discussion ID')
-  ],
+  [param('id').isInt().withMessage('Invalid discussion ID')],
   validate,
   DiscussionController.deleteDiscussion
 );
 
 // Vote on discussion (requires authentication)
-router.post('/:id/vote',
+router.post(
+  '/:id/vote',
   authenticate,
   [
     param('id').isInt().withMessage('Invalid discussion ID'),
@@ -73,7 +94,8 @@ router.post('/:id/vote',
 );
 
 // Pin/unpin discussion (requires admin/moderator)
-router.post('/:id/pin',
+router.post(
+  '/:id/pin',
   authenticate,
   [
     param('id').isInt().withMessage('Invalid discussion ID'),
@@ -84,12 +106,21 @@ router.post('/:id/pin',
 );
 
 // Create announcement (requires admin/moderator)
-router.post('/announcement',
+router.post(
+  '/announcement',
   authenticate,
   [
-    body('title').notEmpty().isString().trim().isLength({ min: 3, max: 200 })
+    body('title')
+      .notEmpty()
+      .isString()
+      .trim()
+      .isLength({ min: 3, max: 200 })
       .withMessage('Title must be between 3 and 200 characters'),
-    body('content').notEmpty().isString().trim().isLength({ min: 10, max: 10000 })
+    body('content')
+      .notEmpty()
+      .isString()
+      .trim()
+      .isLength({ min: 10, max: 10000 })
       .withMessage('Content must be between 10 and 10000 characters'),
     body('problem_id').optional().isInt().withMessage('Invalid problem ID'),
     body('contest_id').optional().isInt().withMessage('Invalid contest ID')

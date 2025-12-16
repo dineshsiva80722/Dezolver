@@ -78,7 +78,7 @@ export const requireFeature = (feature: string) => {
     try {
       const organizationService = new OrganizationService();
       const permissions = await organizationService.getOrganizationPermissions(req.user.userId);
-      
+
       req.permissions = permissions;
 
       // Check specific feature access
@@ -91,7 +91,7 @@ export const requireFeature = (feature: string) => {
             });
           }
           break;
-        
+
         case 'payroll_processing':
           if (!permissions.canManagePayroll) {
             return res.status(403).json({
@@ -100,7 +100,7 @@ export const requireFeature = (feature: string) => {
             });
           }
           break;
-        
+
         case 'certificate_automation':
           if (!permissions.canManageCertificates) {
             return res.status(403).json({
@@ -109,7 +109,7 @@ export const requireFeature = (feature: string) => {
             });
           }
           break;
-        
+
         case 'advanced_analytics':
           if (!permissions.canViewAnalytics) {
             return res.status(403).json({
@@ -118,7 +118,7 @@ export const requireFeature = (feature: string) => {
             });
           }
           break;
-        
+
         case 'api_access':
           if (!permissions.canAccessAPI) {
             return res.status(403).json({
@@ -127,7 +127,7 @@ export const requireFeature = (feature: string) => {
             });
           }
           break;
-        
+
         default:
           if (!permissions.features[feature]) {
             return res.status(403).json({
@@ -148,7 +148,11 @@ export const requireFeature = (feature: string) => {
 };
 
 // Organization isolation - Users can only access their organization data
-export const requireOrganizationAccess = async (req: RBACRequest, res: Response, next: NextFunction) => {
+export const requireOrganizationAccess = async (
+  req: RBACRequest,
+  res: Response,
+  next: NextFunction
+) => {
   if (!req.user) {
     return res.status(401).json({
       success: false,
@@ -162,10 +166,11 @@ export const requireOrganizationAccess = async (req: RBACRequest, res: Response,
   }
 
   // Extract organization ID from request (could be in params, body, or query)
-  const requestedOrgId = req.params.organizationId || 
-                         req.params.orgId || 
-                         req.body.organization_id ||
-                         req.query.organization_id;
+  const requestedOrgId =
+    req.params.organizationId ||
+    req.params.orgId ||
+    req.body.organization_id ||
+    req.query.organization_id;
 
   // If no specific organization requested, they can only access their own
   if (!requestedOrgId) {
@@ -206,7 +211,7 @@ export const enforceUserLimits = async (req: RBACRequest, res: Response, next: N
       });
     }
     const limitCheck = await organizationService.checkUserLimit(req.user.organization_id);
-    
+
     // If this is a user creation request, check limits
     if (req.method === 'POST' && req.path.includes('/users')) {
       if (!limitCheck.canAddUser) {
@@ -242,7 +247,7 @@ export const requireRoleHierarchy = (minimumRole: UserRole) => {
     [UserRole.MODERATOR]: 2,
     [UserRole.PROBLEM_SETTER]: 2,
     [UserRole.MANAGER]: 3,
-    [UserRole.SUPER_ADMIN]: 4,
+    [UserRole.SUPER_ADMIN]: 4
   };
 
   return (req: RBACRequest, res: Response, next: NextFunction) => {
@@ -268,7 +273,11 @@ export const requireRoleHierarchy = (minimumRole: UserRole) => {
 };
 
 // Subscription validation
-export const requireActiveSubscription = async (req: RBACRequest, res: Response, next: NextFunction) => {
+export const requireActiveSubscription = async (
+  req: RBACRequest,
+  res: Response,
+  next: NextFunction
+) => {
   if (!req.user) {
     return res.status(401).json({
       success: false,
@@ -290,7 +299,7 @@ export const requireActiveSubscription = async (req: RBACRequest, res: Response,
       });
     }
     const organization = await organizationService.getOrganizationById(req.user.organization_id);
-    
+
     if (!organization) {
       return res.status(404).json({
         success: false,

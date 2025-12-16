@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   OneToMany,
-  JoinColumn,
+  JoinColumn
 } from 'typeorm';
 import { User } from './User.entity';
 import { Certificate } from './Certificate.entity';
@@ -74,6 +74,6 @@ export class CertificateTemplate {
   @UpdateDateColumn({ name: 'updated_at' })
   updated_at: Date;
 
-  @OneToMany(() => Certificate, certificate => certificate.template)
+  @OneToMany(() => Certificate, (certificate) => certificate.template)
   certificates: Certificate[];
 }

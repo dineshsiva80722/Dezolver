@@ -44,7 +44,8 @@ export class PayrollController {
       if (!employee_id || !pay_period_start || !pay_period_end || !working_days || !days_worked) {
         res.status(400).json({
           success: false,
-          message: 'Missing required fields: employee_id, pay_period_start, pay_period_end, working_days, days_worked'
+          message:
+            'Missing required fields: employee_id, pay_period_start, pay_period_end, working_days, days_worked'
         });
         return;
       }
@@ -88,12 +89,7 @@ export class PayrollController {
 
   batchCalculatePayroll = async (req: Request, res: Response): Promise<void> => {
     try {
-      const {
-        employee_ids,
-        pay_period_start,
-        pay_period_end,
-        working_days
-      } = req.body;
+      const { employee_ids, pay_period_start, pay_period_end, working_days } = req.body;
 
       const currentUser = (req as any).user;
       if (currentUser.role !== UserRole.ADMIN) {
@@ -104,19 +100,26 @@ export class PayrollController {
         return;
       }
 
-      if (!Array.isArray(employee_ids) || employee_ids.length === 0 || !pay_period_start || !pay_period_end || !working_days) {
+      if (
+        !Array.isArray(employee_ids) ||
+        employee_ids.length === 0 ||
+        !pay_period_start ||
+        !pay_period_end ||
+        !working_days
+      ) {
         res.status(400).json({
           success: false,
-          message: 'Missing required fields: employee_ids (array), pay_period_start, pay_period_end, working_days'
+          message:
+            'Missing required fields: employee_ids (array), pay_period_start, pay_period_end, working_days'
         });
         return;
       }
 
       const employees = await Promise.all(
-        employee_ids.map(id => this.employeeService.getEmployeeById(id))
+        employee_ids.map((id) => this.employeeService.getEmployeeById(id))
       );
 
-      const validEmployees = employees.filter(emp => emp !== null);
+      const validEmployees = employees.filter((emp) => emp !== null);
 
       if (validEmployees.length === 0) {
         res.status(404).json({
@@ -160,7 +163,10 @@ export class PayrollController {
         return;
       }
 
-      const processedPayroll = await this.payrollService.processPayroll(payrollId, currentUser.userId);
+      const processedPayroll = await this.payrollService.processPayroll(
+        payrollId,
+        currentUser.userId
+      );
 
       if (!processedPayroll) {
         res.status(404).json({

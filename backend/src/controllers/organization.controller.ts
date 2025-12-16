@@ -99,7 +99,10 @@ export class OrganizationController {
       }
 
       // Check access permissions
-      if (currentUser.tier !== UserTier.PLATFORM && currentUser.organization_id !== organizationId) {
+      if (
+        currentUser.tier !== UserTier.PLATFORM &&
+        currentUser.organization_id !== organizationId
+      ) {
         res.status(403).json({
           success: false,
           message: 'Access denied'
@@ -133,8 +136,12 @@ export class OrganizationController {
         return;
       }
 
-      const organization = await this.organizationService.getOrganizationById(currentUser.organization_id);
-      const stats = await this.organizationService.getOrganizationStats(currentUser.organization_id);
+      const organization = await this.organizationService.getOrganizationById(
+        currentUser.organization_id
+      );
+      const stats = await this.organizationService.getOrganizationStats(
+        currentUser.organization_id
+      );
 
       res.status(200).json({
         success: true,
@@ -160,8 +167,10 @@ export class OrganizationController {
       const currentUser = (req as any).user;
 
       // Check permissions
-      if (currentUser.tier !== UserTier.PLATFORM && 
-          (currentUser.tier !== UserTier.MANAGER || currentUser.organization_id !== organizationId)) {
+      if (
+        currentUser.tier !== UserTier.PLATFORM &&
+        (currentUser.tier !== UserTier.MANAGER || currentUser.organization_id !== organizationId)
+      ) {
         res.status(403).json({
           success: false,
           message: 'Only organization managers can add users'
@@ -211,7 +220,10 @@ export class OrganizationController {
       const currentUser = (req as any).user;
 
       // Check access permissions
-      if (currentUser.tier !== UserTier.PLATFORM && currentUser.organization_id !== organizationId) {
+      if (
+        currentUser.tier !== UserTier.PLATFORM &&
+        currentUser.organization_id !== organizationId
+      ) {
         res.status(403).json({
           success: false,
           message: 'Access denied'
@@ -225,7 +237,7 @@ export class OrganizationController {
       res.status(200).json({
         success: true,
         data: {
-          users: users.map(user => ({
+          users: users.map((user) => ({
             id: user.id,
             username: user.username,
             email: user.email,
@@ -256,8 +268,12 @@ export class OrganizationController {
       const currentUser = (req as any).user;
 
       // Check permissions
-      if (currentUser.tier !== UserTier.PLATFORM && 
-          (currentUser.tier !== UserTier.MANAGER || currentUser.organization_id !== organizationId || !currentUser.is_organization_owner)) {
+      if (
+        currentUser.tier !== UserTier.PLATFORM &&
+        (currentUser.tier !== UserTier.MANAGER ||
+          currentUser.organization_id !== organizationId ||
+          !currentUser.is_organization_owner)
+      ) {
         res.status(403).json({
           success: false,
           message: 'Only organization owners can upgrade plans'
@@ -338,7 +354,9 @@ export class OrganizationController {
         return;
       }
 
-      const permissions = await this.organizationService.getOrganizationPermissions(currentUser.userId);
+      const permissions = await this.organizationService.getOrganizationPermissions(
+        currentUser.userId
+      );
 
       res.status(200).json({
         success: true,

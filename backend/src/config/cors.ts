@@ -8,10 +8,10 @@ export const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     // Use environment variable for allowed origins
     const allowedOrigins = process.env.FRONTEND_URL
-      ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+      ? process.env.FRONTEND_URL.split(',').map((url) => url.trim())
       : [
           'http://localhost:5173',
           'http://localhost:5174',
@@ -20,7 +20,7 @@ export const corsOptions: CorsOptions = {
           'http://localhost:3002',
           'http://127.0.0.1:5173'
         ];
-    
+
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {

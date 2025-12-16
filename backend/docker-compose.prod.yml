@@ -14,9 +14,9 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:33545
       - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_PORT=33545
       - JWT_SECRET=${JWT_SECRET}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
       - JUDGE0_API_URL=http://judge0:2358
@@ -67,11 +67,11 @@ services:
     image: redis:7-alpine
     container_name: techfolks-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    command: redis-server --appendonly yes --port 33545 --requirepass ${REDIS_PASSWORD:-}
     volumes:
       - redis_data:/data
     ports:
-      - "6379:6379"
+      - "33545:33545"
     networks:
       - techfolks-network
     healthcheck:
@@ -86,7 +86,7 @@ services:
     restart: unless-stopped
     environment:
       - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_PORT=33545
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
       - POSTGRES_HOST=judge0-postgres
       - POSTGRES_USER=judge0

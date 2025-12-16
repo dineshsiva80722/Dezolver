@@ -38,7 +38,7 @@ const certificateController = new CertificateController();
  *         created_at:
  *           type: string
  *           format: date-time
- * 
+ *
  *     CertificateTemplate:
  *       type: object
  *       properties:
@@ -478,7 +478,11 @@ router.patch('/templates/:templateId', authenticate, certificateController.updat
  *       500:
  *         description: Server error
  */
-router.patch('/templates/:templateId/set-default', authenticate, certificateController.setDefaultTemplate);
+router.patch(
+  '/templates/:templateId/set-default',
+  authenticate,
+  certificateController.setDefaultTemplate
+);
 
 /**
  * @swagger

@@ -24,7 +24,7 @@ export class AssessmentController {
         total_marks,
         is_public,
         start_time,
-        end_time,
+        end_time
       } = req.body;
 
       const assessmentRepository = AppDataSource.getRepository(Assessment);
@@ -49,7 +49,7 @@ export class AssessmentController {
       res.status(201).json({
         success: true,
         message: 'Assessment created successfully',
-        data: assessment,
+        data: assessment
       });
     } catch (error) {
       logger.error('Error creating assessment:', error);
@@ -66,15 +66,15 @@ export class AssessmentController {
 
       const assessments = await assessmentRepository.find({
         relations: ['creator', 'questions'],
-        order: { created_at: 'DESC' },
+        order: { created_at: 'DESC' }
       });
 
       res.json({
         success: true,
         data: {
           total: assessments.length,
-          assessments,
-        },
+          assessments
+        }
       });
     } catch (error) {
       logger.error('Error fetching assessments:', error);
@@ -97,22 +97,22 @@ export class AssessmentController {
           questions: {
             order_index: 'ASC',
             options: {
-              order_index: 'ASC',
-            },
-          },
-        },
+              order_index: 'ASC'
+            }
+          }
+        }
       });
 
       if (!assessment) {
         return res.status(404).json({
           success: false,
-          message: 'Assessment not found',
+          message: 'Assessment not found'
         });
       }
 
       res.json({
         success: true,
-        data: assessment,
+        data: assessment
       });
     } catch (error) {
       logger.error('Error fetching assessment:', error);
@@ -131,13 +131,13 @@ export class AssessmentController {
       const assessmentRepository = AppDataSource.getRepository(Assessment);
 
       const assessment = await assessmentRepository.findOne({
-        where: { id },
+        where: { id }
       });
 
       if (!assessment) {
         return res.status(404).json({
           success: false,
-          message: 'Assessment not found',
+          message: 'Assessment not found'
         });
       }
 
@@ -153,7 +153,7 @@ export class AssessmentController {
         'is_published',
         'is_public',
         'start_time',
-        'end_time',
+        'end_time'
       ];
 
       allowedFields.forEach((field) => {
@@ -169,7 +169,7 @@ export class AssessmentController {
       res.json({
         success: true,
         message: 'Assessment updated successfully',
-        data: assessment,
+        data: assessment
       });
     } catch (error) {
       logger.error('Error updating assessment:', error);
@@ -186,13 +186,13 @@ export class AssessmentController {
       const assessmentRepository = AppDataSource.getRepository(Assessment);
 
       const assessment = await assessmentRepository.findOne({
-        where: { id },
+        where: { id }
       });
 
       if (!assessment) {
         return res.status(404).json({
           success: false,
-          message: 'Assessment not found',
+          message: 'Assessment not found'
         });
       }
 
@@ -202,7 +202,7 @@ export class AssessmentController {
 
       res.json({
         success: true,
-        message: 'Assessment deleted successfully',
+        message: 'Assessment deleted successfully'
       });
     } catch (error) {
       logger.error('Error deleting assessment:', error);
@@ -216,20 +216,21 @@ export class AssessmentController {
   static async addQuestion(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { assessmentId } = req.params;
-      const { question_text, type, explanation, marks, order_index, options, is_required } = req.body;
+      const { question_text, type, explanation, marks, order_index, options, is_required } =
+        req.body;
 
       const assessmentRepository = AppDataSource.getRepository(Assessment);
       const questionRepository = AppDataSource.getRepository(Question);
       const optionRepository = AppDataSource.getRepository(QuestionOption);
 
       const assessment = await assessmentRepository.findOne({
-        where: { id: assessmentId },
+        where: { id: assessmentId }
       });
 
       if (!assessment) {
         return res.status(404).json({
           success: false,
-          message: 'Assessment not found',
+          message: 'Assessment not found'
         });
       }
 
@@ -240,7 +241,7 @@ export class AssessmentController {
         explanation,
         marks: marks || 1,
         order_index: order_index || 0,
-        is_required: is_required !== undefined ? is_required : true,
+        is_required: is_required !== undefined ? is_required : true
       });
 
       await questionRepository.save(question);
@@ -252,7 +253,7 @@ export class AssessmentController {
             question_id: question.id,
             option_text: opt.option_text,
             is_correct: opt.is_correct || false,
-            order_index: opt.order_index !== undefined ? opt.order_index : index,
+            order_index: opt.order_index !== undefined ? opt.order_index : index
           })
         );
 
@@ -265,7 +266,7 @@ export class AssessmentController {
       res.status(201).json({
         success: true,
         message: 'Question added successfully',
-        data: question,
+        data: question
       });
     } catch (error) {
       logger.error('Error adding question:', error);
@@ -285,18 +286,25 @@ export class AssessmentController {
 
       const question = await questionRepository.findOne({
         where: { id: questionId },
-        relations: ['options'],
+        relations: ['options']
       });
 
       if (!question) {
         return res.status(404).json({
           success: false,
-          message: 'Question not found',
+          message: 'Question not found'
         });
       }
 
       // Update question fields
-      const allowedFields = ['question_text', 'type', 'explanation', 'marks', 'order_index', 'is_required'];
+      const allowedFields = [
+        'question_text',
+        'type',
+        'explanation',
+        'marks',
+        'order_index',
+        'is_required'
+      ];
       allowedFields.forEach((field) => {
         if (updates[field] !== undefined) {
           (question as any)[field] = updates[field];
@@ -318,7 +326,7 @@ export class AssessmentController {
             question_id: questionId,
             option_text: opt.option_text,
             is_correct: opt.is_correct || false,
-            order_index: opt.order_index !== undefined ? opt.order_index : index,
+            order_index: opt.order_index !== undefined ? opt.order_index : index
           })
         );
 
@@ -331,7 +339,7 @@ export class AssessmentController {
       res.json({
         success: true,
         message: 'Question updated successfully',
-        data: question,
+        data: question
       });
     } catch (error) {
       logger.error('Error updating question:', error);
@@ -348,13 +356,13 @@ export class AssessmentController {
       const questionRepository = AppDataSource.getRepository(Question);
 
       const question = await questionRepository.findOne({
-        where: { id: questionId },
+        where: { id: questionId }
       });
 
       if (!question) {
         return res.status(404).json({
           success: false,
-          message: 'Question not found',
+          message: 'Question not found'
         });
       }
 
@@ -364,7 +372,7 @@ export class AssessmentController {
 
       res.json({
         success: true,
-        message: 'Question deleted successfully',
+        message: 'Question deleted successfully'
       });
     } catch (error) {
       logger.error('Error deleting question:', error);
@@ -383,7 +391,7 @@ export class AssessmentController {
       if (!questions || !Array.isArray(questions) || questions.length === 0) {
         return res.status(400).json({
           success: false,
-          message: 'Questions array is required',
+          message: 'Questions array is required'
         });
       }
 
@@ -392,13 +400,13 @@ export class AssessmentController {
       const optionRepository = AppDataSource.getRepository(QuestionOption);
 
       const assessment = await assessmentRepository.findOne({
-        where: { id: assessmentId },
+        where: { id: assessmentId }
       });
 
       if (!assessment) {
         return res.status(404).json({
           success: false,
-          message: 'Assessment not found',
+          message: 'Assessment not found'
         });
       }
 
@@ -412,7 +420,7 @@ export class AssessmentController {
           explanation: q.explanation,
           marks: q.marks || 1,
           order_index: q.order_index || 0,
-          is_required: q.is_required !== undefined ? q.is_required : true,
+          is_required: q.is_required !== undefined ? q.is_required : true
         });
 
         await questionRepository.save(question);
@@ -424,7 +432,7 @@ export class AssessmentController {
               question_id: question.id,
               option_text: opt.option_text,
               is_correct: opt.is_correct || false,
-              order_index: opt.order_index !== undefined ? opt.order_index : index,
+              order_index: opt.order_index !== undefined ? opt.order_index : index
             })
           );
 
@@ -435,12 +443,14 @@ export class AssessmentController {
         createdQuestions.push(question);
       }
 
-      logger.info(`${createdQuestions.length} questions mapped to assessment ${assessmentId} by ${req.user?.username}`);
+      logger.info(
+        `${createdQuestions.length} questions mapped to assessment ${assessmentId} by ${req.user?.username}`
+      );
 
       res.status(201).json({
         success: true,
         message: `${createdQuestions.length} questions added successfully`,
-        data: createdQuestions,
+        data: createdQuestions
       });
     } catch (error) {
       logger.error('Error mapping questions:', error);
@@ -458,13 +468,13 @@ export class AssessmentController {
       const assessmentRepository = AppDataSource.getRepository(Assessment);
 
       const assessment = await assessmentRepository.findOne({
-        where: { id: assessmentId },
+        where: { id: assessmentId }
       });
 
       if (!assessment) {
         return res.status(404).json({
           success: false,
-          message: 'Assessment not found',
+          message: 'Assessment not found'
         });
       }
 
@@ -472,7 +482,7 @@ export class AssessmentController {
       if (!assessment.is_published && assessment.created_by !== req.user?.userId) {
         return res.status(403).json({
           success: false,
-          message: 'Assessment is not published',
+          message: 'Assessment is not published'
         });
       }
 
@@ -480,7 +490,7 @@ export class AssessmentController {
         assessment_id: assessmentId,
         user_id: req.user?.userId,
         start_time: new Date(),
-        status: AttemptStatus.IN_PROGRESS,
+        status: AttemptStatus.IN_PROGRESS
       });
 
       await attemptRepository.save(attempt);
@@ -488,7 +498,7 @@ export class AssessmentController {
       res.status(201).json({
         success: true,
         message: 'Assessment attempt started',
-        data: attempt,
+        data: attempt
       });
     } catch (error) {
       logger.error('Error starting attempt:', error);
@@ -508,20 +518,20 @@ export class AssessmentController {
 
       const attempt = await attemptRepository.findOne({
         where: { id: attemptId, user_id: req.user?.userId },
-        relations: ['assessment', 'assessment.questions', 'assessment.questions.options'],
+        relations: ['assessment', 'assessment.questions', 'assessment.questions.options']
       });
 
       if (!attempt) {
         return res.status(404).json({
           success: false,
-          message: 'Attempt not found',
+          message: 'Attempt not found'
         });
       }
 
       if (attempt.status !== AttemptStatus.IN_PROGRESS) {
         return res.status(400).json({
           success: false,
-          message: 'Attempt is not in progress',
+          message: 'Attempt is not in progress'
         });
       }
 
@@ -533,13 +543,18 @@ export class AssessmentController {
         const userAnswer = answers[question.id];
         if (!userAnswer) continue;
 
-        if (question.type === QuestionType.MULTIPLE_CHOICE || question.type === QuestionType.TRUE_FALSE) {
+        if (
+          question.type === QuestionType.MULTIPLE_CHOICE ||
+          question.type === QuestionType.TRUE_FALSE
+        ) {
           const correctOption = question.options.find((opt) => opt.is_correct);
           if (correctOption && userAnswer === correctOption.id) {
             score += question.marks;
           }
         } else if (question.type === QuestionType.MULTIPLE_SELECT) {
-          const correctOptions = question.options.filter((opt) => opt.is_correct).map((opt) => opt.id);
+          const correctOptions = question.options
+            .filter((opt) => opt.is_correct)
+            .map((opt) => opt.id);
           const userAnswers = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
           if (
             correctOptions.length === userAnswers.length &&
@@ -572,8 +587,8 @@ export class AssessmentController {
           score,
           percentage,
           is_passed,
-          total_marks: assessment.total_marks,
-        },
+          total_marks: assessment.total_marks
+        }
       });
     } catch (error) {
       logger.error('Error submitting attempt:', error);
@@ -592,17 +607,17 @@ export class AssessmentController {
       const attempts = await attemptRepository.find({
         where: {
           assessment_id: assessmentId,
-          user_id: req.user?.userId,
+          user_id: req.user?.userId
         },
-        order: { created_at: 'DESC' },
+        order: { created_at: 'DESC' }
       });
 
       res.json({
         success: true,
         data: {
           total: attempts.length,
-          attempts,
-        },
+          attempts
+        }
       });
     } catch (error) {
       logger.error('Error fetching attempts:', error);

@@ -7,7 +7,7 @@ import {
   OneToOne,
   OneToMany,
   JoinColumn,
-  Index,
+  Index
 } from 'typeorm';
 import { User } from './User.entity';
 import { PayrollRecord } from './PayrollRecord.entity';
@@ -16,13 +16,13 @@ export enum EmploymentType {
   FULL_TIME = 'full_time',
   PART_TIME = 'part_time',
   CONTRACT = 'contract',
-  INTERN = 'intern',
+  INTERN = 'intern'
 }
 
 export enum PaymentFrequency {
   MONTHLY = 'monthly',
   BI_WEEKLY = 'bi_weekly',
-  WEEKLY = 'weekly',
+  WEEKLY = 'weekly'
 }
 
 @Entity('employees')
@@ -60,7 +60,7 @@ export class Employee {
   @Column({
     type: 'enum',
     enum: EmploymentType,
-    default: EmploymentType.FULL_TIME,
+    default: EmploymentType.FULL_TIME
   })
   employment_type: EmploymentType;
 
@@ -70,7 +70,7 @@ export class Employee {
   @Column({
     type: 'enum',
     enum: PaymentFrequency,
-    default: PaymentFrequency.MONTHLY,
+    default: PaymentFrequency.MONTHLY
   })
   payment_frequency: PaymentFrequency;
 
@@ -148,6 +148,6 @@ export class Employee {
   @UpdateDateColumn({ name: 'updated_at' })
   updated_at: Date;
 
-  @OneToMany(() => PayrollRecord, payroll => payroll.employee)
+  @OneToMany(() => PayrollRecord, (payroll) => payroll.employee)
   payroll_records: PayrollRecord[];
 }

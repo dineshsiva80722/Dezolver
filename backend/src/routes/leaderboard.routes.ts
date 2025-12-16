@@ -85,7 +85,8 @@ const router = Router();
  *                 pagination:
  *                   type: object
  */
-router.get('/global',
+router.get(
+  '/global',
   query('page').optional().isInt({ min: 1 }),
   query('limit').optional().isInt({ min: 1, max: 100 }),
   query('timeFrame').optional().isIn(['all-time', 'monthly', 'weekly']),
@@ -116,7 +117,8 @@ router.get('/global',
  *       200:
  *         description: Weekly leaderboard data
  */
-router.get('/weekly',
+router.get(
+  '/weekly',
   query('page').optional().isInt({ min: 1 }),
   query('limit').optional().isInt({ min: 1, max: 100 }),
   validate,
@@ -144,7 +146,8 @@ router.get('/weekly',
  *       200:
  *         description: Monthly leaderboard data
  */
-router.get('/monthly',
+router.get(
+  '/monthly',
   query('page').optional().isInt({ min: 1 }),
   query('limit').optional().isInt({ min: 1, max: 100 }),
   validate,
@@ -168,8 +171,6 @@ router.get('/monthly',
  *       200:
  *         description: User's leaderboard position
  */
-router.get('/user/:userId',
-  leaderboardController.getUserPosition
-);
+router.get('/user/:userId', leaderboardController.getUserPosition);
 
 export default router;

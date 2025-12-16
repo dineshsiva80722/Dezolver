@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-  Index,
+  Index
 } from 'typeorm';
 import { User } from './User.entity';
 import { Subscription } from './Subscription.entity';
@@ -14,14 +14,14 @@ export enum OrganizationStatus {
   ACTIVE = 'active',
   SUSPENDED = 'suspended',
   EXPIRED = 'expired',
-  TRIAL = 'trial',
+  TRIAL = 'trial'
 }
 
 export enum OrganizationPlan {
   STARTER = 'starter', // 25 users
-  PROFESSIONAL = 'professional', // 100 users  
+  PROFESSIONAL = 'professional', // 100 users
   ENTERPRISE = 'enterprise', // 500 users
-  UNLIMITED = 'unlimited', // unlimited users
+  UNLIMITED = 'unlimited' // unlimited users
 }
 
 @Entity('organizations')
@@ -64,7 +64,7 @@ export class Organization {
     type: 'enum',
     enum: OrganizationPlan,
     enumName: 'organization_plan',
-    default: OrganizationPlan.STARTER,
+    default: OrganizationPlan.STARTER
   })
   plan: OrganizationPlan;
 
@@ -72,7 +72,7 @@ export class Organization {
     type: 'enum',
     enum: OrganizationStatus,
     enumName: 'organization_status',
-    default: OrganizationStatus.TRIAL,
+    default: OrganizationStatus.TRIAL
   })
   status: OrganizationStatus;
 
@@ -144,9 +144,9 @@ export class Organization {
   updated_at: Date;
 
   // Relations
-  @OneToMany(() => User, user => user.organization)
+  @OneToMany(() => User, (user) => user.organization)
   users: User[];
 
-  @OneToMany(() => Subscription, subscription => subscription.organization)
+  @OneToMany(() => Subscription, (subscription) => subscription.organization)
   subscriptions: Subscription[];
 }

@@ -27,12 +27,14 @@ export class RazorpayService {
     this.keySecret = process.env.RAZORPAY_KEY_SECRET || '';
 
     if (!this.keyId || !this.keySecret) {
-      throw new Error('Razorpay credentials not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in environment variables.');
+      throw new Error(
+        'Razorpay credentials not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in environment variables.'
+      );
     }
 
     this.razorpay = new Razorpay({
       key_id: this.keyId,
-      key_secret: this.keySecret,
+      key_secret: this.keySecret
     });
   }
 
@@ -45,14 +47,16 @@ export class RazorpayService {
         amount: Math.round(params.amount * 100), // Convert to paise
         currency: params.currency || 'INR',
         receipt: params.receipt || `receipt_${Date.now()}`,
-        notes: params.notes || {},
+        notes: params.notes || {}
       };
 
       const order = await this.razorpay.orders.create(options);
       return order;
     } catch (error) {
       console.error('Razorpay create order error:', error);
-      throw new Error(`Failed to create Razorpay order: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to create Razorpay order: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -102,7 +106,9 @@ export class RazorpayService {
       return payment;
     } catch (error) {
       console.error('Fetch payment error:', error);
-      throw new Error(`Failed to fetch payment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to fetch payment: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -115,7 +121,9 @@ export class RazorpayService {
       return order;
     } catch (error) {
       console.error('Fetch order error:', error);
-      throw new Error(`Failed to fetch order: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to fetch order: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -132,7 +140,9 @@ export class RazorpayService {
       return payment;
     } catch (error) {
       console.error('Capture payment error:', error);
-      throw new Error(`Failed to capture payment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to capture payment: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -142,7 +152,7 @@ export class RazorpayService {
   async refundPayment(paymentId: string, amount?: number): Promise<any> {
     try {
       const options: any = {
-        payment_id: paymentId,
+        payment_id: paymentId
       };
 
       if (amount) {
@@ -153,7 +163,9 @@ export class RazorpayService {
       return refund;
     } catch (error) {
       console.error('Refund payment error:', error);
-      throw new Error(`Failed to refund payment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to refund payment: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -190,8 +202,8 @@ export class RazorpayService {
       metadata: {
         ...data.metadata,
         razorpay_order_id: data.razorpay_order_id,
-        razorpay_payment_id: data.razorpay_payment_id,
-      },
+        razorpay_payment_id: data.razorpay_payment_id
+      }
     });
 
     return await paymentRepo.save(payment);
@@ -209,7 +221,7 @@ export class RazorpayService {
     const paymentRepo = AppDataSource.getRepository(Payment);
 
     const payment = await paymentRepo.findOne({
-      where: { payment_gateway_order_id: orderId },
+      where: { payment_gateway_order_id: orderId }
     });
 
     if (!payment) {
@@ -222,7 +234,7 @@ export class RazorpayService {
     payment.metadata = {
       ...payment.metadata,
       ...metadata,
-      razorpay_payment_id: paymentId,
+      razorpay_payment_id: paymentId
     };
 
     return await paymentRepo.save(payment);
@@ -242,7 +254,7 @@ export class RazorpayService {
     const subscriptionRepo = AppDataSource.getRepository(Subscription);
 
     const subscription = await subscriptionRepo.findOne({
-      where: { id: subscriptionId },
+      where: { id: subscriptionId }
     });
 
     if (!subscription) {
@@ -255,7 +267,7 @@ export class RazorpayService {
       payment_method_id: paymentData.payment_method_id,
       transaction_id: paymentData.transaction_id,
       last_payment_date: new Date().toISOString(),
-      last_payment_amount: paymentData.amount,
+      last_payment_amount: paymentData.amount
     };
 
     // Update subscription status to active if payment is successful
@@ -285,8 +297,8 @@ export class RazorpayService {
         subscription_id: params.subscription_id,
         organization_id: params.organization_id,
         plan_name: params.plan_name,
-        billing_cycle: params.billing_cycle,
-      },
+        billing_cycle: params.billing_cycle
+      }
     });
 
     // Create payment record
@@ -301,8 +313,8 @@ export class RazorpayService {
       description: `${params.plan_name} subscription - ${params.billing_cycle}`,
       metadata: {
         plan_name: params.plan_name,
-        billing_cycle: params.billing_cycle,
-      },
+        billing_cycle: params.billing_cycle
+      }
     });
 
     return { order, payment };

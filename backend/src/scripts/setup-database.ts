@@ -95,8 +95,8 @@ async function seedData() {
       full_name: `Test User ${i}`,
       role: UserRole.USER,
       is_verified: true,
-      rating: 1200 + (i * 100),
-      max_rating: 1200 + (i * 100),
+      rating: 1200 + i * 100,
+      max_rating: 1200 + i * 100,
       problems_solved: i * 5,
       contests_participated_count: i,
       contribution_points: i * 10
@@ -128,7 +128,8 @@ Output: [1,2]
 **Example 3:**
 Input: nums = [3,3], target = 6
 Output: [0,1]`,
-      input_format: 'First line contains n (size of array) and target.\nSecond line contains n space-separated integers.',
+      input_format:
+        'First line contains n (size of array) and target.\nSecond line contains n space-separated integers.',
       output_format: 'Two space-separated integers representing the indices.',
       constraints: '2 <= n <= 10^4\n-10^9 <= nums[i] <= 10^9\n-10^9 <= target <= 10^9',
       difficulty: ProblemDifficulty.EASY,
@@ -169,7 +170,8 @@ The path sum of a path is the sum of the node's values in the path.
 Given the root of a binary tree, return the maximum path sum of any non-empty path.`,
       input_format: 'Binary tree represented in level order traversal format.',
       output_format: 'Maximum path sum.',
-      constraints: 'The number of nodes in the tree is in the range [1, 3 * 10^4].\n-1000 <= Node.val <= 1000',
+      constraints:
+        'The number of nodes in the tree is in the range [1, 3 * 10^4].\n-1000 <= Node.val <= 1000',
       difficulty: ProblemDifficulty.HARD,
       time_limit: 1000,
       memory_limit: 256,
@@ -262,51 +264,119 @@ Output: false`,
     ];
 
     for (const tc of testCases) {
-      await AppDataSource.query(`
+      await AppDataSource.query(
+        `
         INSERT INTO test_cases (problem_id, input, expected_output, is_sample, points)
         VALUES ($1, $2, $3, $4, $5)
-      `, [firstProblem.id, tc.input, tc.expected_output, tc.is_sample, tc.points]);
+      `,
+        [firstProblem.id, tc.input, tc.expected_output, tc.is_sample, tc.points]
+      );
     }
     logger.info('Test cases created for Two Sum problem');
   }
 
   // Create tags
   const tagNames = [
-    'arrays', 'strings', 'dynamic-programming', 'graphs', 'trees',
-    'binary-search', 'sorting', 'greedy', 'math', 'implementation',
-    'data-structures', 'algorithms', 'number-theory', 'geometry',
-    'bfs', 'dfs', 'divide-and-conquer', 'backtracking', 'two-pointers',
-    'sliding-window', 'stack', 'queue', 'heap', 'hash-table'
+    'arrays',
+    'strings',
+    'dynamic-programming',
+    'graphs',
+    'trees',
+    'binary-search',
+    'sorting',
+    'greedy',
+    'math',
+    'implementation',
+    'data-structures',
+    'algorithms',
+    'number-theory',
+    'geometry',
+    'bfs',
+    'dfs',
+    'divide-and-conquer',
+    'backtracking',
+    'two-pointers',
+    'sliding-window',
+    'stack',
+    'queue',
+    'heap',
+    'hash-table'
   ];
 
   for (const tagName of tagNames) {
-    await AppDataSource.query(`
+    await AppDataSource.query(
+      `
       INSERT INTO tags (name, description)
       VALUES ($1, $2)
       ON CONFLICT (name) DO NOTHING
-    `, [tagName, `Problems related to ${tagName}`]);
+    `,
+      [tagName, `Problems related to ${tagName}`]
+    );
   }
   logger.info('Tags created');
 
   // Create achievements
   const achievements = [
-    { name: 'First Blood', description: 'Solve your first problem', category: 'problem_solving', points: 10 },
-    { name: 'Streak Master', description: 'Maintain a 7-day solving streak', category: 'consistency', points: 50 },
-    { name: 'Contest Winner', description: 'Win your first contest', category: 'contest', points: 100 },
-    { name: 'Problem Setter', description: 'Create your first problem', category: 'contribution', points: 50 },
-    { name: 'Helpful Member', description: 'Get 10 upvotes on forum posts', category: 'community', points: 30 },
-    { name: 'Speed Demon', description: 'Solve a problem in under 5 minutes', category: 'speed', points: 20 },
-    { name: 'Bug Hunter', description: 'Report a valid bug in the platform', category: 'contribution', points: 40 },
-    { name: 'Century', description: 'Solve 100 problems', category: 'problem_solving', points: 100 },
+    {
+      name: 'First Blood',
+      description: 'Solve your first problem',
+      category: 'problem_solving',
+      points: 10
+    },
+    {
+      name: 'Streak Master',
+      description: 'Maintain a 7-day solving streak',
+      category: 'consistency',
+      points: 50
+    },
+    {
+      name: 'Contest Winner',
+      description: 'Win your first contest',
+      category: 'contest',
+      points: 100
+    },
+    {
+      name: 'Problem Setter',
+      description: 'Create your first problem',
+      category: 'contribution',
+      points: 50
+    },
+    {
+      name: 'Helpful Member',
+      description: 'Get 10 upvotes on forum posts',
+      category: 'community',
+      points: 30
+    },
+    {
+      name: 'Speed Demon',
+      description: 'Solve a problem in under 5 minutes',
+      category: 'speed',
+      points: 20
+    },
+    {
+      name: 'Bug Hunter',
+      description: 'Report a valid bug in the platform',
+      category: 'contribution',
+      points: 40
+    },
+    {
+      name: 'Century',
+      description: 'Solve 100 problems',
+      category: 'problem_solving',
+      points: 100
+    },
     { name: 'Elite Coder', description: 'Reach 2000 rating', category: 'rating', points: 200 },
     { name: 'Legend', description: 'Reach 3000 rating', category: 'rating', points: 500 }
   ];
 
   for (const achievement of achievements) {
-    await AppDataSource.query(`
+    await AppDataSource.query(
+      `
       INSERT INTO achievements (name, description, category, points)
       VALUES ($1, $2, $3, $4)
-    `, [achievement.name, achievement.description, achievement.category, achievement.points]);
+    `,
+      [achievement.name, achievement.description, achievement.category, achievement.points]
+    );
   }
   logger.info('Achievements created');
 }

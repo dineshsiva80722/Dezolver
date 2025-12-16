@@ -39,9 +39,9 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction): 
   const originalSend = res.send;
   res.send = function (data: any): Response {
     res.send = originalSend;
-    
+
     const responseTime = Date.now() - req.startTime;
-    
+
     logger.info({
       type: 'response',
       requestId: req.requestId,

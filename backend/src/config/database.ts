@@ -22,17 +22,25 @@ import { QuestionOption } from '../models/QuestionOption.entity';
 import { AssessmentAttempt } from '../models/AssessmentAttempt.entity';
 
 // Enhanced PostgreSQL configuration for production scale
+const dbUrl = process.env.DATABASE_URL;
+const parsedDbUrl = dbUrl ? new URL(dbUrl) : null;
 const pgConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'techfolks_db',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD,
+  host: parsedDbUrl ? parsedDbUrl.hostname : process.env.DB_HOST || 'localhost',
+  port: parsedDbUrl
+    ? parseInt(parsedDbUrl.port || '5432')
+    : parseInt(process.env.DB_PORT || '5432'),
+  database: parsedDbUrl
+    ? parsedDbUrl.pathname.replace('/', '') || process.env.DB_NAME || 'techfolks_db'
+    : process.env.DB_NAME || 'techfolks_db',
+  user: parsedDbUrl
+    ? parsedDbUrl.username || process.env.DB_USER || 'postgres'
+    : process.env.DB_USER || 'postgres',
+  password: parsedDbUrl ? parsedDbUrl.password || process.env.DB_PASSWORD : process.env.DB_PASSWORD,
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
-  
+
   // Connection pool settings optimized for 10K users
   max: parseInt(process.env.DB_MAX_CONNECTIONS || '100'), // Increased from 20
-  min: parseInt(process.env.DB_MIN_CONNECTIONS || '20'),  // Minimum connections
+  min: parseInt(process.env.DB_MIN_CONNECTIONS || '20'), // Minimum connections
   idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '60000'), // 60 seconds
   connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT || '10000'), // 10 seconds
   acquireTimeoutMillis: parseInt(process.env.DB_ACQUIRE_TIMEOUT || '60000'), // 60 seconds
@@ -40,19 +48,19 @@ const pgConfig = {
   destroyTimeoutMillis: parseInt(process.env.DB_DESTROY_TIMEOUT || '5000'), // 5 seconds
   reapIntervalMillis: parseInt(process.env.DB_REAP_INTERVAL || '1000'), // 1 second
   createRetryIntervalMillis: parseInt(process.env.DB_CREATE_RETRY_INTERVAL || '200'), // 200ms
-  
+
   // Performance optimizations
   keepAlive: true,
   keepAliveInitialDelayMillis: 10000,
   parseInputDatesAsUTC: true,
   allowExitOnIdle: true,
-  
+
   // Query timeouts
   statement_timeout: parseInt(process.env.DB_STATEMENT_TIMEOUT || '30000'), // 30 seconds
   idle_in_transaction_session_timeout: parseInt(process.env.DB_IDLE_TRANSACTION_TIMEOUT || '30000'), // 30 seconds
-  
+
   // Application name for monitoring
-  application_name: 'techfolks_backend',
+  application_name: 'techfolks_backend'
 };
 
 export const pgPool = new Pool(pgConfig);
@@ -60,12 +68,12 @@ export const pgPool = new Pool(pgConfig);
 // Enhanced TypeORM DataSource with optimized connection pooling
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  username: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-  database: process.env.DB_NAME || 'techfolks_db',
-  
+  host: pgConfig.host,
+  port: pgConfig.port,
+  username: pgConfig.user,
+  password: pgConfig.password || 'postgres',
+  database: pgConfig.database,
+
   // Connection pool configuration
   extra: {
     max: parseInt(process.env.DB_MAX_CONNECTIONS || '100'),
@@ -77,35 +85,40 @@ export const AppDataSource = new DataSource({
     destroyTimeoutMillis: parseInt(process.env.DB_DESTROY_TIMEOUT || '5000'),
     reapIntervalMillis: parseInt(process.env.DB_REAP_INTERVAL || '1000'),
     createRetryIntervalMillis: parseInt(process.env.DB_CREATE_RETRY_INTERVAL || '200'),
-    
+
     // Performance optimizations
     ssl: process.env.DB_SSL === 'true',
     application_name: 'techfolks_backend',
     statement_timeout: parseInt(process.env.DB_STATEMENT_TIMEOUT || '30000'),
-    idle_in_transaction_session_timeout: parseInt(process.env.DB_IDLE_TRANSACTION_TIMEOUT || '30000'),
+    idle_in_transaction_session_timeout: parseInt(
+      process.env.DB_IDLE_TRANSACTION_TIMEOUT || '30000'
+    ),
     keepAlive: true,
-    keepAliveInitialDelayMillis: 10000,
+    keepAliveInitialDelayMillis: 10000
   },
-  
+
   // Connection pool size for TypeORM
   poolSize: parseInt(process.env.DB_MAX_CONNECTIONS || '100'),
   maxQueryExecutionTime: parseInt(process.env.DB_MAX_QUERY_TIME || '30000'),
-  
+
   // Cache configuration for better performance
-  cache: process.env.NODE_ENV === 'production' ? (() => {
-    const url = new URL(process.env.REDIS_URL as string);
-    return {
-      type: 'redis',
-      options: {
-        host: url.hostname,
-        port: parseInt(url.port || '33545'),
-        password: url.password || undefined,
-        db: parseInt(process.env.REDIS_CACHE_DB || '1'),
-      },
-      duration: 30000,
-    };
-  })() : false,
-  
+  cache:
+    process.env.NODE_ENV === 'production'
+      ? (() => {
+          const url = new URL(process.env.REDIS_URL as string);
+          return {
+            type: 'redis',
+            options: {
+              host: url.hostname,
+              port: parseInt(url.port || '33545'),
+              password: url.password || undefined,
+              db: parseInt(process.env.REDIS_CACHE_DB || '1')
+            },
+            duration: 30000
+          };
+        })()
+      : false,
+
   synchronize: false, // Always false in production
   logging: process.env.NODE_ENV === 'development' ? ['query', 'error'] : ['error'],
   entities: [
@@ -129,7 +142,7 @@ export const AppDataSource = new DataSource({
     AssessmentAttempt
   ],
   migrations: ['src/database/migrations/*.ts'],
-  subscribers: [],
+  subscribers: []
 });
 
 // PostgreSQL connection
@@ -138,7 +151,7 @@ export const connectDatabase = async (): Promise<void> => {
     // Initialize TypeORM
     await AppDataSource.initialize();
     logger.info('TypeORM DataSource has been initialized!');
-    
+
     // Test raw PostgreSQL connection
     const client = await pgPool.connect();
     await client.query('SELECT NOW()');
@@ -154,20 +167,20 @@ export const connectDatabase = async (): Promise<void> => {
 export const connectMongoDB = async (): Promise<void> => {
   try {
     const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/techfolks';
-    
+
     mongoose.set('strictQuery', false);
-    
+
     await mongoose.connect(mongoUri, {
       maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 5000
     });
-    
+
     logger.info('MongoDB connected successfully');
-    
+
     mongoose.connection.on('error', (error) => {
       logger.error('MongoDB connection error:', error);
     });
-    
+
     mongoose.connection.on('disconnected', () => {
       logger.warn('MongoDB disconnected');
     });

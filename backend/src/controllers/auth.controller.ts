@@ -140,7 +140,12 @@ export class AuthController {
       );
 
       // Remove sensitive data from response
-      const { password: _, verification_token: __, reset_password_token: ___, ...userResponse } = user;
+      const {
+        password: _,
+        verification_token: __,
+        reset_password_token: ___,
+        ...userResponse
+      } = user;
 
       res.json({
         success: true,
@@ -271,7 +276,7 @@ export class AuthController {
       const userRepository = AppDataSource.getRepository(User);
 
       const user = await userRepository.findOne({
-        where: { 
+        where: {
           reset_password_token: token,
           reset_password_expires: { $gt: new Date() } as any
         }
@@ -349,10 +354,24 @@ export class AuthController {
         where: { id: userId },
         relations: ['assessmentAttempts', 'assessmentAttempts.assessment'],
         select: [
-          'id', 'username', 'email', 'full_name', 'avatar_url', 'bio',
-          'country', 'institution', 'github_username', 'linkedin_url',
-          'website_url', 'rating', 'max_rating', 'role', 'is_verified',
-          'created_at', 'problems_solved', 'contests_participated_count',
+          'id',
+          'username',
+          'email',
+          'full_name',
+          'avatar_url',
+          'bio',
+          'country',
+          'institution',
+          'github_username',
+          'linkedin_url',
+          'website_url',
+          'rating',
+          'max_rating',
+          'role',
+          'is_verified',
+          'created_at',
+          'problems_solved',
+          'contests_participated_count',
           'contribution_points'
         ]
       });
@@ -367,25 +386,31 @@ export class AuthController {
       // Calculate assessment statistics
       const assessmentStats = {
         total_attempts: user.assessmentAttempts?.length || 0,
-        completed_assessments: user.assessmentAttempts?.filter(a => a.status === 'completed' || a.status === 'evaluated').length || 0,
-        passed_assessments: user.assessmentAttempts?.filter(a => a.is_passed).length || 0,
-        average_score: user.assessmentAttempts?.length > 0
-          ? user.assessmentAttempts.reduce((sum, a) => sum + (a.percentage || 0), 0) / user.assessmentAttempts.length
-          : 0,
-        recent_attempts: user.assessmentAttempts
-          ?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-          .slice(0, 5)
-          .map(attempt => ({
-            id: attempt.id,
-            assessment_title: attempt.assessment?.title,
-            status: attempt.status,
-            score: attempt.score,
-            percentage: attempt.percentage,
-            is_passed: attempt.is_passed,
-            start_time: attempt.start_time,
-            end_time: attempt.end_time,
-            created_at: attempt.created_at
-          })) || []
+        completed_assessments:
+          user.assessmentAttempts?.filter(
+            (a) => a.status === 'completed' || a.status === 'evaluated'
+          ).length || 0,
+        passed_assessments: user.assessmentAttempts?.filter((a) => a.is_passed).length || 0,
+        average_score:
+          user.assessmentAttempts?.length > 0
+            ? user.assessmentAttempts.reduce((sum, a) => sum + (a.percentage || 0), 0) /
+              user.assessmentAttempts.length
+            : 0,
+        recent_attempts:
+          user.assessmentAttempts
+            ?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .slice(0, 5)
+            .map((attempt) => ({
+              id: attempt.id,
+              assessment_title: attempt.assessment?.title,
+              status: attempt.status,
+              score: attempt.score,
+              percentage: attempt.percentage,
+              is_passed: attempt.is_passed,
+              start_time: attempt.start_time,
+              end_time: attempt.end_time,
+              created_at: attempt.created_at
+            })) || []
       };
 
       res.json({
@@ -420,11 +445,16 @@ export class AuthController {
 
       // Update allowed fields
       const allowedFields = [
-        'full_name', 'bio', 'country', 'institution',
-        'github_username', 'linkedin_url', 'website_url'
+        'full_name',
+        'bio',
+        'country',
+        'institution',
+        'github_username',
+        'linkedin_url',
+        'website_url'
       ];
 
-      allowedFields.forEach(field => {
+      allowedFields.forEach((field) => {
         if (updateData[field] !== undefined) {
           (user as any)[field] = updateData[field];
         }
@@ -433,7 +463,12 @@ export class AuthController {
       await userRepository.save(user);
 
       // Remove sensitive data from response
-      const { password: _, verification_token: __, reset_password_token: ___, ...userResponse } = user;
+      const {
+        password: _,
+        verification_token: __,
+        reset_password_token: ___,
+        ...userResponse
+      } = user;
 
       res.json({
         success: true,

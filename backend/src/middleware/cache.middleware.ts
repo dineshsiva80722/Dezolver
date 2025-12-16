@@ -28,20 +28,20 @@ export function cacheMiddleware(options: CacheMiddlewareOptions = {}) {
       }
 
       // Generate cache key
-      const cacheKey = options.keyGenerator 
+      const cacheKey = options.keyGenerator
         ? options.keyGenerator(req)
         : generateDefaultCacheKey(req, options.varyBy);
 
       // Try to get from cache
       const cached = await cacheService.get(cacheKey, {
-        namespace: options.namespace || CacheNamespaces.API_RESPONSES,
+        namespace: options.namespace || CacheNamespaces.API_RESPONSES
       });
 
       if (cached) {
         // Set cache headers
         res.set('X-Cache', 'HIT');
         res.set('X-Cache-Key', cacheKey);
-        
+
         return res.json(cached);
       }
 
@@ -51,23 +51,23 @@ export function cacheMiddleware(options: CacheMiddlewareOptions = {}) {
 
       // Override res.json to cache the response
       const originalJson = res.json.bind(res);
-      res.json = function(data: any) {
+      res.json = function (data: any) {
         // Only cache successful responses
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          const tags = typeof options.tags === 'function' 
-            ? options.tags(req)
-            : options.tags;
+          const tags = typeof options.tags === 'function' ? options.tags(req) : options.tags;
 
-          cacheService.set(cacheKey, data, {
-            ttl: options.ttl || CacheTTL.MEDIUM,
-            namespace: options.namespace || CacheNamespaces.API_RESPONSES,
-            tags,
-          }).catch(error => {
-            logger.warn('Failed to cache response', { 
-              cacheKey, 
-              error: error.message 
+          cacheService
+            .set(cacheKey, data, {
+              ttl: options.ttl || CacheTTL.MEDIUM,
+              namespace: options.namespace || CacheNamespaces.API_RESPONSES,
+              tags
+            })
+            .catch((error) => {
+              logger.warn('Failed to cache response', {
+                cacheKey,
+                error: error.message
+              });
             });
-          });
         }
 
         return originalJson(data);
@@ -93,7 +93,7 @@ export const problemCacheMiddleware = cacheMiddleware({
     return userId ? `problem:${slug}:user:${userId}` : `problem:${slug}:public`;
   },
   tags: (req) => [`problem:${req.params.slug}`, 'problems'],
-  condition: (req) => !!req.params.slug,
+  condition: (req) => !!req.params.slug
 });
 
 /**
@@ -107,11 +107,11 @@ export const contestCacheMiddleware = cacheMiddleware({
     const query = req.query;
     const queryString = Object.keys(query)
       .sort()
-      .map(key => `${key}:${query[key]}`)
+      .map((key) => `${key}:${query[key]}`)
       .join('|');
     return `contest:${id}:${queryString}`;
   },
-  tags: (req) => [`contest:${req.params.id}`, 'contests'],
+  tags: (req) => [`contest:${req.params.id}`, 'contests']
 });
 
 /**
@@ -124,7 +124,7 @@ export const leaderboardCacheMiddleware = cacheMiddleware({
     const { page = 1, limit = 20, category = 'global' } = req.query;
     return `leaderboard:${category}:${page}:${limit}`;
   },
-  tags: ['leaderboard', 'users'],
+  tags: ['leaderboard', 'users']
 });
 
 /**
@@ -136,11 +136,9 @@ export const userProfileCacheMiddleware = cacheMiddleware({
   keyGenerator: (req) => {
     const { userId } = req.params;
     const { userId: requesterId } = (req as any).user || {};
-    return requesterId === userId 
-      ? `user:${userId}:private`
-      : `user:${userId}:public`;
+    return requesterId === userId ? `user:${userId}:private` : `user:${userId}:public`;
   },
-  tags: (req) => [`user:${req.params.userId}`, 'users'],
+  tags: (req) => [`user:${req.params.userId}`, 'users']
 });
 
 /**
@@ -153,7 +151,7 @@ export const statisticsCacheMiddleware = cacheMiddleware({
     const { type = 'general', period = 'all' } = req.query;
     return `stats:${type}:${period}`;
   },
-  tags: ['statistics'],
+  tags: ['statistics']
 });
 
 /**
@@ -183,10 +181,8 @@ export function cacheInvalidationMiddleware(options: {
 
         // Invalidate by tags
         if (options.tags) {
-          const tags = typeof options.tags === 'function'
-            ? options.tags(req, res)
-            : options.tags;
-          
+          const tags = typeof options.tags === 'function' ? options.tags(req, res) : options.tags;
+
           if (tags.length > 0) {
             await cacheService.invalidateByTags(tags);
             logger.info('Cache invalidated by tags', { tags, method: req.method, url: req.url });
@@ -195,13 +191,16 @@ export function cacheInvalidationMiddleware(options: {
 
         // Invalidate by patterns
         if (options.patterns) {
-          const patterns = typeof options.patterns === 'function'
-            ? options.patterns(req, res)
-            : options.patterns;
+          const patterns =
+            typeof options.patterns === 'function' ? options.patterns(req, res) : options.patterns;
 
           for (const pattern of patterns) {
             await cacheService.invalidatePattern(pattern);
-            logger.info('Cache invalidated by pattern', { pattern, method: req.method, url: req.url });
+            logger.info('Cache invalidated by pattern', {
+              pattern,
+              method: req.method,
+              url: req.url
+            });
           }
         }
       } catch (error) {
@@ -210,12 +209,12 @@ export function cacheInvalidationMiddleware(options: {
     };
 
     // Override response methods to trigger invalidation
-    res.json = function(data: any) {
+    res.json = function (data: any) {
       invalidateCache();
       return originalJson(data);
     };
 
-    res.send = function(data: any) {
+    res.send = function (data: any) {
       invalidateCache();
       return originalSend(data);
     };
@@ -229,13 +228,13 @@ export function cacheInvalidationMiddleware(options: {
  */
 function generateDefaultCacheKey(req: Request, varyBy?: string[]): string {
   const baseKey = `${req.method}:${req.path}`;
-  
+
   if (!varyBy || varyBy.length === 0) {
     return baseKey;
   }
 
   const variations = varyBy
-    .map(field => {
+    .map((field) => {
       if (field.startsWith('query.')) {
         const queryField = field.substring(6);
         return `${queryField}:${req.query[queryField] || ''}`;
@@ -250,7 +249,7 @@ function generateDefaultCacheKey(req: Request, varyBy?: string[]): string {
       }
       return `${field}:${(req as any)[field] || ''}`;
     })
-    .filter(variation => variation)
+    .filter((variation) => variation)
     .join('|');
 
   return variations ? `${baseKey}:${variations}` : baseKey;

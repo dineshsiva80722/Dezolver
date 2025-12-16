@@ -28,7 +28,7 @@ export class CacheService {
     misses: 0,
     sets: 0,
     deletes: 0,
-    errors: 0,
+    errors: 0
   };
 
   static getInstance(): CacheService {
@@ -71,13 +71,13 @@ export class CacheService {
     try {
       const fullKey = this.buildKey(key, options.namespace);
       const value = await redis.get(fullKey);
-      
+
       if (!value) {
         return null;
       }
 
       let parsed: T;
-      
+
       if (options.compress) {
         const buffer = Buffer.from(value, 'base64');
         const decompressed = await gunzip(buffer);
@@ -97,17 +97,13 @@ export class CacheService {
   /**
    * Set value in cache
    */
-  async set(
-    key: string,
-    value: any,
-    options: CacheOptions = {}
-  ): Promise<void> {
+  async set(key: string, value: any, options: CacheOptions = {}): Promise<void> {
     try {
       const fullKey = this.buildKey(key, options.namespace);
       const ttl = options.ttl || 3600; // Default 1 hour
-      
+
       let serialized: string;
-      
+
       if (options.compress) {
         const json = JSON.stringify(value);
         const compressed = await gzip(Buffer.from(json));
@@ -150,14 +146,14 @@ export class CacheService {
     try {
       const fullPattern = this.buildKey(pattern, namespace);
       const keys = await redis.keys(fullPattern);
-      
+
       if (keys.length === 0) {
         return 0;
       }
 
       await redis.del(...keys);
       this.metrics.deletes += keys.length;
-      
+
       logger.info('Cache pattern invalidated', { pattern: fullPattern, count: keys.length });
       return keys.length;
     } catch (error) {
@@ -173,11 +169,11 @@ export class CacheService {
   async invalidateByTags(tags: string[]): Promise<number> {
     try {
       let totalDeleted = 0;
-      
+
       for (const tag of tags) {
         const tagKey = `tag:${tag}`;
         const keys = await redis.smembers(tagKey);
-        
+
         if (keys.length > 0) {
           await redis.del(...keys);
           await redis.del(tagKey);
@@ -201,19 +197,19 @@ export class CacheService {
   async mset(entries: Array<{ key: string; value: any; options?: CacheOptions }>): Promise<void> {
     try {
       const pipeline = redis.pipeline();
-      
+
       for (const entry of entries) {
         const fullKey = this.buildKey(entry.key, entry.options?.namespace);
         const ttl = entry.options?.ttl || 3600;
         const serialized = JSON.stringify(entry.value);
-        
+
         pipeline.setex(fullKey, ttl, serialized);
-        
+
         if (entry.options?.tags) {
           await this.addTags(fullKey, entry.options.tags, ttl);
         }
       }
-      
+
       await pipeline.exec();
       this.metrics.sets += entries.length;
     } catch (error) {
@@ -227,15 +223,15 @@ export class CacheService {
    */
   async mget<T>(keys: Array<{ key: string; namespace?: string }>): Promise<Array<T | null>> {
     try {
-      const fullKeys = keys.map(k => this.buildKey(k.key, k.namespace));
+      const fullKeys = keys.map((k) => this.buildKey(k.key, k.namespace));
       const values = await redis.mget(...fullKeys);
-      
-      return values.map(value => {
+
+      return values.map((value) => {
         if (!value) {
           this.metrics.misses++;
           return null;
         }
-        
+
         this.metrics.hits++;
         return JSON.parse(value);
       });
@@ -253,11 +249,11 @@ export class CacheService {
     try {
       const fullKey = this.buildKey(key, namespace);
       const result = await redis.incrby(fullKey, by);
-      
+
       if (ttl) {
         await redis.expire(fullKey, ttl);
       }
-      
+
       return result;
     } catch (error) {
       this.metrics.errors++;
@@ -272,10 +268,10 @@ export class CacheService {
   getMetrics(): CacheMetrics & { hitRatio: number } {
     const total = this.metrics.hits + this.metrics.misses;
     const hitRatio = total > 0 ? (this.metrics.hits / total) * 100 : 0;
-    
+
     return {
       ...this.metrics,
-      hitRatio: Math.round(hitRatio * 100) / 100,
+      hitRatio: Math.round(hitRatio * 100) / 100
     };
   }
 
@@ -288,7 +284,7 @@ export class CacheService {
       misses: 0,
       sets: 0,
       deletes: 0,
-      errors: 0,
+      errors: 0
     };
   }
 
@@ -299,11 +295,11 @@ export class CacheService {
     try {
       const info = await redis.info('memory');
       const dbsize = await redis.dbsize();
-      
+
       return {
         dbsize,
         memoryInfo: this.parseRedisInfo(info),
-        metrics: this.getMetrics(),
+        metrics: this.getMetrics()
       };
     } catch (error) {
       logger.error('Failed to get cache info', { error: error.message });
@@ -325,13 +321,13 @@ export class CacheService {
   private async addTags(key: string, tags: string[], ttl: number): Promise<void> {
     try {
       const pipeline = redis.pipeline();
-      
+
       for (const tag of tags) {
         const tagKey = `tag:${tag}`;
         pipeline.sadd(tagKey, key);
         pipeline.expire(tagKey, ttl);
       }
-      
+
       await pipeline.exec();
     } catch (error) {
       logger.error('Failed to add cache tags', { key, tags, error: error.message });
@@ -344,14 +340,14 @@ export class CacheService {
   private parseRedisInfo(info: string): any {
     const lines = info.split('\r\n');
     const result: any = {};
-    
+
     for (const line of lines) {
       if (line.includes(':')) {
         const [key, value] = line.split(':');
         result[key] = isNaN(Number(value)) ? value : Number(value);
       }
     }
-    
+
     return result;
   }
 }
@@ -365,16 +361,16 @@ export const CacheNamespaces = {
   LEADERBOARD: 'leaderboard',
   STATISTICS: 'statistics',
   API_RESPONSES: 'api',
-  SESSION: 'session',
+  SESSION: 'session'
 } as const;
 
 // Cache TTL constants (in seconds)
 export const CacheTTL = {
-  SHORT: 300,        // 5 minutes
-  MEDIUM: 1800,      // 30 minutes
-  LONG: 3600,        // 1 hour
-  VERY_LONG: 86400,  // 24 hours
-  WEEK: 604800,      // 7 days
+  SHORT: 300, // 5 minutes
+  MEDIUM: 1800, // 30 minutes
+  LONG: 3600, // 1 hour
+  VERY_LONG: 86400, // 24 hours
+  WEEK: 604800 // 7 days
 } as const;
 
 // Export singleton instance

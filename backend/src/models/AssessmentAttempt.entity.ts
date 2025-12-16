@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  JoinColumn,
+  JoinColumn
 } from 'typeorm';
 import { User } from './User.entity';
 import { Assessment } from './Assessment.entity';
@@ -14,7 +14,7 @@ export enum AttemptStatus {
   IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed',
   ABANDONED = 'abandoned',
-  EVALUATED = 'evaluated',
+  EVALUATED = 'evaluated'
 }
 
 @Entity('assessment_attempts')
@@ -31,7 +31,7 @@ export class AssessmentAttempt {
   @Column({
     type: 'enum',
     enum: AttemptStatus,
-    default: AttemptStatus.IN_PROGRESS,
+    default: AttemptStatus.IN_PROGRESS
   })
   status: AttemptStatus;
 

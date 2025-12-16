@@ -38,11 +38,11 @@ export class PayrollCalculationService {
 
   async calculatePayroll(data: PayrollCalculationData): Promise<PayrollRecord> {
     const { employee } = data;
-    
+
     const existingPayroll = await this.payrollRepository.findOne({
       where: {
         employee_id: employee.id,
-        pay_period_start: data.payPeriodStart,
+        pay_period_start: data.payPeriodStart
       }
     });
 
@@ -51,7 +51,7 @@ export class PayrollCalculationService {
     }
 
     const payrollId = this.generatePayrollId();
-    
+
     const basicSalary = this.calculateProportionalSalary(
       employee.basic_salary,
       data.workingDays,
@@ -61,10 +61,10 @@ export class PayrollCalculationService {
 
     const earnings = this.calculateEarnings(employee, data, basicSalary);
     const grossSalary = basicSalary + this.sumEarnings(earnings);
-    
+
     const taxResult = this.calculateTax(employee, grossSalary);
     const deductions = this.calculateDeductions(employee, data, grossSalary, taxResult);
-    
+
     const totalDeductions = this.sumDeductions(deductions);
     const netSalary = grossSalary - totalDeductions;
 
@@ -84,7 +84,7 @@ export class PayrollCalculationService {
       deductions,
       total_deductions: totalDeductions,
       net_salary: netSalary,
-      status: PayrollStatus.DRAFT,
+      status: PayrollStatus.DRAFT
     });
 
     return await this.payrollRepository.save(payrollRecord);
@@ -104,7 +104,7 @@ export class PayrollCalculationService {
     frequency: PaymentFrequency
   ): number {
     if (workingDays === 0) return 0;
-    
+
     const dailyRate = basicSalary / workingDays;
     return dailyRate * daysWorked;
   }
@@ -166,7 +166,7 @@ export class PayrollCalculationService {
     }
 
     if (components.custom_allowances && Array.isArray(components.custom_allowances)) {
-      const customAllowances = components.custom_allowances.map(allowance => {
+      const customAllowances = components.custom_allowances.map((allowance) => {
         let amount = 0;
         if (allowance.type === 'fixed') {
           amount = this.calculateProportionalAmount(
@@ -179,7 +179,7 @@ export class PayrollCalculationService {
         }
         return { name: allowance.name, amount };
       });
-      
+
       if (!earnings.custom_allowances) {
         earnings.custom_allowances = [];
       }
@@ -200,8 +200,8 @@ export class PayrollCalculationService {
 
   private sumEarnings(earnings: any): number {
     let total = 0;
-    
-    Object.keys(earnings).forEach(key => {
+
+    Object.keys(earnings).forEach((key) => {
       if (key === 'custom_allowances' && Array.isArray(earnings[key])) {
         total += earnings[key].reduce((sum: number, item: any) => sum + (item.amount || 0), 0);
       } else if (typeof earnings[key] === 'number') {
@@ -242,11 +242,11 @@ export class PayrollCalculationService {
 
   private calculateTDSOldRegime(annualSalary: number, exemptions: any[]): number {
     let taxableIncome = annualSalary;
-    
+
     const standardDeduction = Math.min(50000, annualSalary);
     taxableIncome -= standardDeduction;
 
-    exemptions.forEach(exemption => {
+    exemptions.forEach((exemption) => {
       taxableIncome -= exemption.amount || 0;
     });
 
@@ -258,9 +258,9 @@ export class PayrollCalculationService {
     } else if (taxableIncome <= 500000) {
       tax = (taxableIncome - 250000) * 0.05;
     } else if (taxableIncome <= 1000000) {
-      tax = 12500 + (taxableIncome - 500000) * 0.20;
+      tax = 12500 + (taxableIncome - 500000) * 0.2;
     } else {
-      tax = 112500 + (taxableIncome - 1000000) * 0.30;
+      tax = 112500 + (taxableIncome - 1000000) * 0.3;
     }
 
     const cess = tax * 0.04;
@@ -268,21 +268,21 @@ export class PayrollCalculationService {
   }
 
   private calculateTDSNewRegime(annualSalary: number): number {
-    let taxableIncome = annualSalary;
-    
+    const taxableIncome = annualSalary;
+
     let tax = 0;
     if (taxableIncome <= 300000) {
       tax = 0;
     } else if (taxableIncome <= 600000) {
       tax = (taxableIncome - 300000) * 0.05;
     } else if (taxableIncome <= 900000) {
-      tax = 15000 + (taxableIncome - 600000) * 0.10;
+      tax = 15000 + (taxableIncome - 600000) * 0.1;
     } else if (taxableIncome <= 1200000) {
       tax = 45000 + (taxableIncome - 900000) * 0.15;
     } else if (taxableIncome <= 1500000) {
-      tax = 90000 + (taxableIncome - 1200000) * 0.20;
+      tax = 90000 + (taxableIncome - 1200000) * 0.2;
     } else {
-      tax = 150000 + (taxableIncome - 1500000) * 0.30;
+      tax = 150000 + (taxableIncome - 1500000) * 0.3;
     }
 
     const cess = tax * 0.04;
@@ -331,7 +331,7 @@ export class PayrollCalculationService {
     }
 
     if (deductionConfig.custom_deductions && Array.isArray(deductionConfig.custom_deductions)) {
-      const customDeductions = deductionConfig.custom_deductions.map(deduction => {
+      const customDeductions = deductionConfig.custom_deductions.map((deduction) => {
         let amount = 0;
         if (deduction.type === 'fixed') {
           amount = this.calculateProportionalAmount(
@@ -344,7 +344,7 @@ export class PayrollCalculationService {
         }
         return { name: deduction.name, amount };
       });
-      
+
       if (!deductions.custom_deductions) {
         deductions.custom_deductions = [];
       }
@@ -356,8 +356,8 @@ export class PayrollCalculationService {
 
   private sumDeductions(deductions: any): number {
     let total = 0;
-    
-    Object.keys(deductions).forEach(key => {
+
+    Object.keys(deductions).forEach((key) => {
       if (key === 'custom_deductions' && Array.isArray(deductions[key])) {
         total += deductions[key].reduce((sum: number, item: any) => sum + (item.amount || 0), 0);
       } else if (typeof deductions[key] === 'number') {
@@ -375,7 +375,7 @@ export class PayrollCalculationService {
     workingDays: number
   ): Promise<PayrollRecord[]> {
     const results: PayrollRecord[] = [];
-    
+
     for (const employee of employees) {
       try {
         const calculationData: PayrollCalculationData = {
@@ -383,7 +383,7 @@ export class PayrollCalculationService {
           payPeriodStart,
           payPeriodEnd,
           workingDays,
-          daysWorked: workingDays,
+          daysWorked: workingDays
         };
 
         const payrollRecord = await this.calculatePayroll(calculationData);
@@ -392,7 +392,7 @@ export class PayrollCalculationService {
         console.error(`Failed to calculate payroll for employee ${employee.employee_id}:`, error);
       }
     }
-    
+
     return results;
   }
 
@@ -417,8 +417,8 @@ export class PayrollCalculationService {
   }
 
   async markPayrollAsPaid(
-    payrollId: string, 
-    paymentDate: Date, 
+    payrollId: string,
+    paymentDate: Date,
     paymentReference: string
   ): Promise<PayrollRecord | null> {
     const payroll = await this.payrollRepository.findOne({
@@ -445,7 +445,8 @@ export class PayrollCalculationService {
     limit?: number,
     offset?: number
   ): Promise<{ records: PayrollRecord[]; total: number }> {
-    const query = this.payrollRepository.createQueryBuilder('payroll')
+    const query = this.payrollRepository
+      .createQueryBuilder('payroll')
       .where('payroll.employee_id = :employeeId', { employeeId })
       .orderBy('payroll.pay_period_start', 'DESC');
 
@@ -476,7 +477,8 @@ export class PayrollCalculationService {
     averageSalary: number;
     departmentBreakdown?: { [department: string]: number };
   }> {
-    const query = this.payrollRepository.createQueryBuilder('payroll')
+    const query = this.payrollRepository
+      .createQueryBuilder('payroll')
       .leftJoinAndSelect('payroll.employee', 'employee')
       .where('payroll.pay_period_start >= :startDate', { startDate })
       .andWhere('payroll.pay_period_end <= :endDate', { endDate });
@@ -498,7 +500,7 @@ export class PayrollCalculationService {
       totalGrossAmount,
       totalDeductions,
       totalNetAmount,
-      averageSalary,
+      averageSalary
     };
   }
 }

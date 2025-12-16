@@ -95,18 +95,23 @@ export class ContestController {
         const problems = await problemRepository.find({
           where: problem_ids.map((id: string) => ({ id }))
         });
-        
+
         if (problems.length > 0) {
-          const values = problems.map((_, idx) => `($1, $${idx * 3 + 2}, $${idx * 3 + 3}, $${idx * 3 + 4})`).join(', ');
+          const values = problems
+            .map((_, idx) => `($1, $${idx * 3 + 2}, $${idx * 3 + 3}, $${idx * 3 + 4})`)
+            .join(', ');
           const params: any[] = [contest.id];
           problems.forEach((p, idx) => {
             params.push(p.id, 100, idx + 1);
           });
-          
-          await AppDataSource.query(`
+
+          await AppDataSource.query(
+            `
             INSERT INTO contest_problems (contest_id, problem_id, points, "order")
             VALUES ${values}
-          `, params);
+          `,
+            params
+          );
         }
       }
 
@@ -230,10 +235,13 @@ export class ContestController {
       const userId = req.user!.userId;
 
       // Check if user is owner or manager of the group
-      const memberCheck = await AppDataSource.query(`
+      const memberCheck = await AppDataSource.query(
+        `
         SELECT role FROM group_members 
         WHERE group_id = $1 AND user_id = $2 AND (role = 'owner' OR role = 'manager')
-      `, [groupId, userId]);
+      `,
+        [groupId, userId]
+      );
 
       if (memberCheck.length === 0) {
         return res.status(403).json({
@@ -255,10 +263,13 @@ export class ContestController {
       const savedContest = Array.isArray(savedContestRes) ? savedContestRes[0] : savedContestRes;
 
       // Associate contest with group
-      await AppDataSource.query(`
+      await AppDataSource.query(
+        `
         INSERT INTO group_contests (group_id, contest_id, added_at)
         VALUES ($1, $2, NOW())
-      `, [groupId, savedContest.id]);
+      `,
+        [groupId, savedContest.id]
+      );
 
       res.status(201).json({
         success: true,
@@ -287,10 +298,13 @@ export class ContestController {
 
       // Check if contest is public or user is registered
       if (!contest.is_public && userId) {
-        const isRegistered = await AppDataSource.query(`
+        const isRegistered = await AppDataSource.query(
+          `
           SELECT 1 FROM contest_participants
           WHERE contest_id = $1 AND user_id = $2
-        `, [contest.id, userId]);
+        `,
+          [contest.id, userId]
+        );
 
         if (isRegistered.length === 0) {
           return res.status(403).json({
@@ -302,22 +316,31 @@ export class ContestController {
 
       // Get problems if contest has started or user is admin
       let problems = [];
-      if (contest.status !== ContestStatus.UPCOMING || (req as AuthRequest).user?.role === UserRole.ADMIN) {
-        problems = await AppDataSource.query(`
+      if (
+        contest.status !== ContestStatus.UPCOMING ||
+        (req as AuthRequest).user?.role === UserRole.ADMIN
+      ) {
+        problems = await AppDataSource.query(
+          `
           SELECT p.*, cp.points, cp."order"
           FROM problems p
           INNER JOIN contest_problems cp ON p.id = cp.problem_id
           WHERE cp.contest_id = $1
           ORDER BY cp."order"
-        `, [contest.id]);
+        `,
+          [contest.id]
+        );
       }
 
       // Get participant count
-      const participantCount = await AppDataSource.query(`
+      const participantCount = await AppDataSource.query(
+        `
         SELECT COUNT(*) as count
         FROM contest_participants
         WHERE contest_id = $1
-      `, [contest.id]);
+      `,
+        [contest.id]
+      );
 
       res.json({
         success: true,
@@ -334,14 +357,14 @@ export class ContestController {
 
   static async getContests(req: Request, res: Response, next: NextFunction) {
     try {
-      const { 
-        page = 1, 
-        limit = 20, 
+      const {
+        page = 1,
+        limit = 20,
         status,
         contest_type,
         search,
         sort = 'start_time',
-        order = 'DESC' 
+        order = 'DESC'
       } = req.query;
 
       const queryBuilder = contestRepository.createQueryBuilder('contest');
@@ -369,7 +392,7 @@ export class ContestController {
       if (userId) {
         queryBuilder.andWhere(
           '(contest.is_public = true OR ' +
-          'EXISTS (SELECT 1 FROM contest_participants cp WHERE cp.contest_id = contest.id AND cp.user_id = :userId))',
+            'EXISTS (SELECT 1 FROM contest_participants cp WHERE cp.contest_id = contest.id AND cp.user_id = :userId))',
           { userId }
         );
       } else {
@@ -378,9 +401,11 @@ export class ContestController {
 
       // Sorting
       const allowedSortFields = ['start_time', 'end_time', 'title', 'created_at'];
-      const sortField = allowedSortFields.includes(sort as string) ? sort as string : 'start_time';
+      const sortField = allowedSortFields.includes(sort as string)
+        ? (sort as string)
+        : 'start_time';
       const sortOrder = order === 'ASC' ? 'ASC' : 'DESC';
-      
+
       queryBuilder.orderBy(`contest.${sortField}`, sortOrder);
 
       // Pagination
@@ -393,20 +418,23 @@ export class ContestController {
       const [contests, total] = await queryBuilder.getManyAndCount();
 
       // Get participant counts
-      const contestIds = contests.map(c => c.id);
-      const participantCounts = await AppDataSource.query(`
+      const contestIds = contests.map((c) => c.id);
+      const participantCounts = await AppDataSource.query(
+        `
         SELECT contest_id, COUNT(*) as count
         FROM contest_participants
         WHERE contest_id = ANY($1)
         GROUP BY contest_id
-      `, [contestIds]);
+      `,
+        [contestIds]
+      );
 
       const countsMap = participantCounts.reduce((acc: any, item: any) => {
         acc[item.contest_id] = parseInt(item.count);
         return acc;
       }, {});
 
-      const contestsWithCounts = contests.map(contest => ({
+      const contestsWithCounts = contests.map((contest) => ({
         ...contest,
         participant_count: countsMap[contest.id] || 0
       }));
@@ -459,10 +487,13 @@ export class ContestController {
       }
 
       // Check if already registered
-      const existing = await AppDataSource.query(`
+      const existing = await AppDataSource.query(
+        `
         SELECT 1 FROM contest_participants
         WHERE contest_id = $1 AND user_id = $2
-      `, [contest.id, userId]);
+      `,
+        [contest.id, userId]
+      );
 
       if (existing.length > 0) {
         return res.status(400).json({
@@ -472,10 +503,13 @@ export class ContestController {
       }
 
       // Register user
-      await AppDataSource.query(`
+      await AppDataSource.query(
+        `
         INSERT INTO contest_participants (contest_id, user_id, registered_at)
         VALUES ($1, $2, NOW())
-      `, [contest.id, userId]);
+      `,
+        [contest.id, userId]
+      );
 
       // Update user's contest count
       await userRepository.increment({ id: userId }, 'contests_participated_count', 1);
@@ -518,7 +552,8 @@ export class ContestController {
       const limitNum = parseInt(limit as string);
       const offset = (pageNum - 1) * limitNum;
 
-      const standings = await AppDataSource.query(`
+      const standings = await AppDataSource.query(
+        `
         WITH problem_stats AS (
           SELECT 
             s.user_id,
@@ -553,14 +588,19 @@ export class ContestController {
         WHERE cp.contest_id = $1
         ORDER BY score DESC, penalty ASC
         LIMIT $3 OFFSET $4
-      `, [contest.id, contest.start_time, limitNum, offset]);
+      `,
+        [contest.id, contest.start_time, limitNum, offset]
+      );
 
       // Get total count
-      const totalCount = await AppDataSource.query(`
+      const totalCount = await AppDataSource.query(
+        `
         SELECT COUNT(*) as count
         FROM contest_participants
         WHERE contest_id = $1
-      `, [contest.id]);
+      `,
+        [contest.id]
+      );
 
       res.json({
         success: true,

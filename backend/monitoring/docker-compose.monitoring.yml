@@ -126,7 +126,7 @@ services:
     ports:
       - "9121:9121"
     environment:
-      - REDIS_ADDR=redis://redis:6379
+      - REDIS_ADDR=redis://redis:33545
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     networks:
       - monitoring-network

@@ -11,12 +11,21 @@ export class AdminController {
   static async getAllUsers(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const userRepository = AppDataSource.getRepository(User);
-      
+
       const users = await userRepository.find({
         select: [
-          'id', 'username', 'email', 'full_name', 'role', 'rating', 
-          'max_rating', 'problems_solved', 'contests_participated_count',
-          'is_verified', 'created_at', 'last_login'
+          'id',
+          'username',
+          'email',
+          'full_name',
+          'role',
+          'rating',
+          'max_rating',
+          'problems_solved',
+          'contests_participated_count',
+          'is_verified',
+          'created_at',
+          'last_login'
         ],
         order: { created_at: 'DESC' }
       });
@@ -59,7 +68,12 @@ export class AdminController {
       await userRepository.save(user);
 
       // Remove sensitive data from response
-      const { password: _, verification_token: __, reset_password_token: ___, ...userResponse } = user;
+      const {
+        password: _,
+        verification_token: __,
+        reset_password_token: ___,
+        ...userResponse
+      } = user;
 
       res.json({
         success: true,
@@ -91,7 +105,12 @@ export class AdminController {
       await userRepository.save(user);
 
       // Remove sensitive data from response
-      const { password: _, verification_token: __, reset_password_token: ___, ...userResponse } = user;
+      const {
+        password: _,
+        verification_token: __,
+        reset_password_token: ___,
+        ...userResponse
+      } = user;
 
       res.json({
         success: true,
@@ -197,15 +216,12 @@ export class AdminController {
   static async getSystemStats(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const userRepository = AppDataSource.getRepository(User);
-      
-      const [
-        totalUsers,
-        activeUsers,
-        adminUsers,
-        verifiedUsers
-      ] = await Promise.all([
+
+      const [totalUsers, activeUsers, adminUsers, verifiedUsers] = await Promise.all([
         userRepository.count(),
-        userRepository.count({ where: { last_login: MoreThan(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) } }),
+        userRepository.count({
+          where: { last_login: MoreThan(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) }
+        }),
         userRepository.count({ where: { role: UserRole.ADMIN } }),
         userRepository.count({ where: { is_verified: true } })
       ]);
@@ -221,7 +237,9 @@ export class AdminController {
           total_contests: 0, // TODO: implement when contest model is available
           total_submissions: 0, // TODO: implement when submission model is available
           server_uptime: process.uptime(),
-          memory_usage: Math.round((process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100),
+          memory_usage: Math.round(
+            (process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100
+          ),
           cpu_usage: 0 // TODO: implement CPU usage monitoring
         }
       });
@@ -241,7 +259,7 @@ export class AdminController {
       }
 
       const userRepository = AppDataSource.getRepository(User);
-      
+
       // Keep admin users but delete all others
       await userRepository.delete({ role: { $ne: UserRole.ADMIN } as any });
 
@@ -264,18 +282,14 @@ export class AdminController {
 
       // Check if username or email already exists
       const existingUser = await userRepository.findOne({
-        where: [
-          { username },
-          { email }
-        ]
+        where: [{ username }, { email }]
       });
 
       if (existingUser) {
         return res.status(400).json({
           success: false,
-          message: existingUser.username === username 
-            ? 'Username already exists' 
-            : 'Email already exists'
+          message:
+            existingUser.username === username ? 'Username already exists' : 'Email already exists'
         });
       }
 
@@ -323,8 +337,15 @@ export class AdminController {
       const managers = await userRepository.find({
         where: { role: UserRole.MANAGER },
         select: [
-          'id', 'username', 'email', 'full_name', 'phone_number',
-          'is_active', 'is_verified', 'created_at', 'last_login'
+          'id',
+          'username',
+          'email',
+          'full_name',
+          'phone_number',
+          'is_active',
+          'is_verified',
+          'created_at',
+          'last_login'
         ],
         order: { created_at: 'DESC' }
       });
@@ -365,13 +386,20 @@ export class AdminController {
       const userRepository = AppDataSource.getRepository(User);
 
       const manager = await userRepository.findOne({
-        where: { 
+        where: {
           id: managerId,
           role: UserRole.MANAGER
         },
         select: [
-          'id', 'username', 'email', 'full_name', 'phone_number',
-          'is_active', 'is_verified', 'created_at', 'last_login'
+          'id',
+          'username',
+          'email',
+          'full_name',
+          'phone_number',
+          'is_active',
+          'is_verified',
+          'created_at',
+          'last_login'
         ]
       });
 
@@ -386,8 +414,14 @@ export class AdminController {
       const students = await userRepository.find({
         where: { managed_by: managerId },
         select: [
-          'id', 'username', 'email', 'full_name', 'rating', 
-          'problems_solved', 'is_active', 'created_at'
+          'id',
+          'username',
+          'email',
+          'full_name',
+          'rating',
+          'problems_solved',
+          'is_active',
+          'created_at'
         ]
       });
 

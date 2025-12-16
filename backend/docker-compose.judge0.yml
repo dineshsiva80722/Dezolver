@@ -9,7 +9,7 @@ services:
     environment:
       - RAILS_ENV=production
       - DATABASE_URL=postgresql://judge0:YourPasswordHere@db:5432/judge0
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:33545
     depends_on:
       - db
       - redis
@@ -27,7 +27,9 @@ services:
 
   redis:
     image: redis:6
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --port 33545
+    ports:
+      - "33545:33545"
     volumes:
       - redis_data:/data
     restart: unless-stopped

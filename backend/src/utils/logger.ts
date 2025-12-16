@@ -10,7 +10,7 @@ const logLevels = {
   warn: 1,
   info: 2,
   http: 3,
-  debug: 4,
+  debug: 4
 };
 
 // Define colors for each level
@@ -19,7 +19,7 @@ const logColors = {
   warn: 'yellow',
   info: 'green',
   http: 'magenta',
-  debug: 'blue',
+  debug: 'blue'
 };
 
 winston.addColors(logColors);
@@ -105,7 +105,7 @@ export const logger = winston.createLogger({
   levels: logLevels,
   level: process.env.LOG_LEVEL || 'info',
   format: logFormat,
-  defaultMeta: { 
+  defaultMeta: {
     service: 'techfolks-backend',
     environment: process.env.NODE_ENV || 'development',
     hostname: process.env.HOSTNAME || 'localhost'
@@ -115,7 +115,7 @@ export const logger = winston.createLogger({
 
 // Add exception handling
 logger.exceptions.handle(
-  new winston.transports.File({ 
+  new winston.transports.File({
     filename: path.join(logDir, 'exceptions.log'),
     format: productionFormat
   })
@@ -123,7 +123,7 @@ logger.exceptions.handle(
 
 // Add rejection handling
 logger.rejections.handle(
-  new winston.transports.File({ 
+  new winston.transports.File({
     filename: path.join(logDir, 'rejections.log'),
     format: productionFormat
   })

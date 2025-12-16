@@ -8,19 +8,19 @@ export const submissionConfig = {
 
   // Test execution limits
   testExecution: {
-    timeLimit: 5,        // seconds
-    memoryLimit: 256     // MB
+    timeLimit: 5, // seconds
+    memoryLimit: 256 // MB
   },
 
   // Workspace execution limits
   workspaceExecution: {
-    timeLimit: 10,       // seconds
-    memoryLimit: 512     // MB
+    timeLimit: 10, // seconds
+    memoryLimit: 512 // MB
   },
 
   // Mock execution settings
   mockExecution: {
-    processingDelay: 2000,  // milliseconds
+    processingDelay: 2000, // milliseconds
     timeRange: {
       min: 100,
       max: 500
@@ -47,7 +47,7 @@ export const submissionConfig = {
     submissionNotFound: 'Submission not found',
     accessDenied: 'You do not have access to this problem',
     adminOnly: 'Only admins can rejudge submissions',
-    contestSubmissionHidden: 'Cannot view other users\' submissions during contest',
+    contestSubmissionHidden: "Cannot view other users' submissions during contest",
     invalidLanguage: 'Invalid programming language',
     executionFailed: 'Execution failed',
     invalidInputFormat: 'Invalid input format',

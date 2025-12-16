@@ -244,12 +244,7 @@ router.put(
  *       400:
  *         description: Cannot delete a contest that has started
  */
-router.delete(
-  '/:id',
-  authenticate,
-  authorize(UserRole.ADMIN),
-  ContestController.deleteContest
-);
+router.delete('/:id', authenticate, authorize(UserRole.ADMIN), ContestController.deleteContest);
 
 /**
  * @swagger
@@ -273,11 +268,7 @@ router.delete(
  *       400:
  *         description: Registration closed or already registered
  */
-router.post(
-  '/:id/register',
-  authenticate,
-  ContestController.registerForContest
-);
+router.post('/:id/register', authenticate, ContestController.registerForContest);
 
 /**
  * @swagger

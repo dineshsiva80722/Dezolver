@@ -33,6 +33,8 @@
     "dist/",
     "node_modules/",
     "coverage/",
-    "*.js"
+    "*.js",
+    "tests/",
+    "test-*.ts"
   ]
 }

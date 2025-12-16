@@ -54,8 +54,12 @@ router.use(authorize(UserRole.MANAGER));
  *       403:
  *         description: Not authorized (not a manager)
  */
-router.post('/students',
-  body('username').trim().isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
+router.post(
+  '/students',
+  body('username')
+    .trim()
+    .isLength({ min: 3 })
+    .withMessage('Username must be at least 3 characters'),
   body('email').isEmail().withMessage('Valid email required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   body('full_name').trim().isLength({ min: 2 }).withMessage('Full name required'),
@@ -136,7 +140,8 @@ router.get('/students/:studentId', ManagerController.getStudentById);
  *       404:
  *         description: Student not found
  */
-router.put('/students/:studentId',
+router.put(
+  '/students/:studentId',
   body('full_name').optional().trim(),
   body('phone_number').optional().trim(),
   body('institution').optional().trim(),
@@ -204,4 +209,3 @@ router.post('/students/:studentId/reactivate', ManagerController.reactivateStude
 router.get('/stats', ManagerController.getManagerStats);
 
 export default router;
-

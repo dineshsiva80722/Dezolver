@@ -46,17 +46,17 @@ export class DatabaseMonitor {
       total: pgPool.totalCount || 0,
       idle: pgPool.idleCount || 0,
       waiting: pgPool.waitingCount || 0,
-      connecting: (pgPool.totalCount || 0) - (pgPool.idleCount || 0) - (pgPool.waitingCount || 0),
+      connecting: (pgPool.totalCount || 0) - (pgPool.idleCount || 0) - (pgPool.waitingCount || 0)
     };
 
-    const utilization = poolStats.total > 0 ? 
-      ((poolStats.total - poolStats.idle) / poolStats.total) * 100 : 0;
+    const utilization =
+      poolStats.total > 0 ? ((poolStats.total - poolStats.idle) / poolStats.total) * 100 : 0;
 
     return {
       ...poolStats,
       utilization: Math.round(utilization * 100) / 100,
       maxConnections: parseInt(process.env.DB_MAX_CONNECTIONS || '100'),
-      healthy: poolStats.total < parseInt(process.env.DB_MAX_CONNECTIONS || '100') * 0.9,
+      healthy: poolStats.total < parseInt(process.env.DB_MAX_CONNECTIONS || '100') * 0.9
     };
   }
 
@@ -68,7 +68,7 @@ export class DatabaseMonitor {
       isInitialized: AppDataSource.isInitialized,
       isConnected: AppDataSource.isInitialized,
       hasMetadata: AppDataSource.hasMetadata,
-      entityMetadatas: AppDataSource.entityMetadatas.length,
+      entityMetadatas: AppDataSource.entityMetadatas.length
     };
   }
 
@@ -92,9 +92,9 @@ export class DatabaseMonitor {
     }
 
     // Log stats periodically
-    logger.debug('Database pool stats', { 
-      pool: stats, 
-      typeorm: typeormStatus 
+    logger.debug('Database pool stats', {
+      pool: stats,
+      typeorm: typeormStatus
     });
   }
 
@@ -109,13 +109,13 @@ export class DatabaseMonitor {
     responseTime?: number;
   }> {
     const startTime = Date.now();
-    
+
     try {
       // Test connectivity with a simple query
       const client = await pgPool.connect();
       await client.query('SELECT 1');
       client.release();
-      
+
       const responseTime = Date.now() - startTime;
       const poolStats = this.getPoolStats();
       const typeormStatus = this.getTypeORMStatus();
@@ -125,16 +125,16 @@ export class DatabaseMonitor {
         pool: poolStats,
         typeorm: typeormStatus,
         connectivity: true,
-        responseTime,
+        responseTime
       };
     } catch (error) {
       logger.error('Database health check failed', { error: error.message });
-      
+
       return {
         healthy: false,
         pool: this.getPoolStats(),
         typeorm: this.getTypeORMStatus(),
-        connectivity: false,
+        connectivity: false
       };
     }
   }
@@ -145,7 +145,8 @@ export class DatabaseMonitor {
   async getSlowQueries(limit: number = 10): Promise<any[]> {
     try {
       const client = await pgPool.connect();
-      const result = await client.query(`
+      const result = await client.query(
+        `
         SELECT 
           query,
           calls,
@@ -157,13 +158,15 @@ export class DatabaseMonitor {
         FROM pg_stat_statements 
         ORDER BY mean_time DESC 
         LIMIT $1
-      `, [limit]);
-      
+      `,
+        [limit]
+      );
+
       client.release();
       return result.rows;
     } catch (error) {
-      logger.warn('Could not fetch slow queries (pg_stat_statements may not be enabled)', { 
-        error: error.message 
+      logger.warn('Could not fetch slow queries (pg_stat_statements may not be enabled)', {
+        error: error.message
       });
       return [];
     }
@@ -178,20 +181,20 @@ export class DatabaseMonitor {
 
     return {
       // Pool metrics
-      'db_pool_connections_total': stats.total,
-      'db_pool_connections_idle': stats.idle,
-      'db_pool_connections_waiting': stats.waiting,
-      'db_pool_connections_active': stats.connecting,
-      'db_pool_utilization_percent': stats.utilization,
-      'db_pool_max_connections': stats.maxConnections,
-      
+      db_pool_connections_total: stats.total,
+      db_pool_connections_idle: stats.idle,
+      db_pool_connections_waiting: stats.waiting,
+      db_pool_connections_active: stats.connecting,
+      db_pool_utilization_percent: stats.utilization,
+      db_pool_max_connections: stats.maxConnections,
+
       // TypeORM metrics
-      'db_typeorm_initialized': typeormStatus.isInitialized ? 1 : 0,
-      'db_typeorm_connected': typeormStatus.isConnected ? 1 : 0,
-      'db_typeorm_entities': typeormStatus.entityMetadatas,
-      
+      db_typeorm_initialized: typeormStatus.isInitialized ? 1 : 0,
+      db_typeorm_connected: typeormStatus.isConnected ? 1 : 0,
+      db_typeorm_entities: typeormStatus.entityMetadatas,
+
       // Health metric
-      'db_healthy': stats.healthy ? 1 : 0,
+      db_healthy: stats.healthy ? 1 : 0
     };
   }
 
@@ -200,20 +203,20 @@ export class DatabaseMonitor {
    */
   async emergencyReset(): Promise<void> {
     logger.warn('Performing emergency database connection pool reset');
-    
+
     try {
       // End all connections in the pool
       await pgPool.end();
-      
+
       // Wait a moment
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       // Reinitialize TypeORM if needed
       if (AppDataSource.isInitialized) {
         await AppDataSource.destroy();
         await AppDataSource.initialize();
       }
-      
+
       logger.info('Emergency database reset completed');
     } catch (error) {
       logger.error('Emergency database reset failed', { error: error.message });

@@ -2,7 +2,11 @@ import { Router } from 'express';
 import { ProblemController } from '../controllers/problem.controller';
 import { SubmissionController } from '../controllers/submission.controller';
 import { authenticate, authorize, optionalAuth } from '../middleware/auth.middleware';
-import { problemValidationRules, submissionValidationRules, validate } from '../middleware/validation.middleware';
+import {
+  problemValidationRules,
+  submissionValidationRules,
+  validate
+} from '../middleware/validation.middleware';
 import { UserRole } from '../types/enums';
 
 const router = Router();
@@ -228,12 +232,7 @@ router.put(
  *       403:
  *         description: Only admins can delete problems
  */
-router.delete(
-  '/:id',
-  authenticate,
-  authorize(UserRole.ADMIN),
-  ProblemController.deleteProblem
-);
+router.delete('/:id', authenticate, authorize(UserRole.ADMIN), ProblemController.deleteProblem);
 
 /**
  * @swagger
@@ -308,10 +307,6 @@ router.post(
  *       404:
  *         description: Problem not found
  */
-router.get(
-  '/:id/submissions',
-  authenticate,
-  SubmissionController.getProblemSubmissions
-);
+router.get('/:id/submissions', authenticate, SubmissionController.getProblemSubmissions);
 
 export default router;

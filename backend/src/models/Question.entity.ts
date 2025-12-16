@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   OneToMany,
-  JoinColumn,
+  JoinColumn
 } from 'typeorm';
 import { Assessment } from './Assessment.entity';
 import { QuestionOption } from './QuestionOption.entity';
@@ -17,7 +17,7 @@ export enum QuestionType {
   TRUE_FALSE = 'true_false',
   SHORT_ANSWER = 'short_answer',
   LONG_ANSWER = 'long_answer',
-  CODING = 'coding',
+  CODING = 'coding'
 }
 
 @Entity('questions')
@@ -34,7 +34,7 @@ export class Question {
   @Column({
     type: 'enum',
     enum: QuestionType,
-    default: QuestionType.MULTIPLE_CHOICE,
+    default: QuestionType.MULTIPLE_CHOICE
   })
   type: QuestionType;
 
@@ -60,10 +60,10 @@ export class Question {
   updated_at: Date;
 
   // Relations
-  @ManyToOne(() => Assessment, assessment => assessment.questions, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Assessment, (assessment) => assessment.questions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'assessment_id' })
   assessment: Assessment;
 
-  @OneToMany(() => QuestionOption, option => option.question, { cascade: true })
+  @OneToMany(() => QuestionOption, (option) => option.question, { cascade: true })
   options: QuestionOption[];
 }

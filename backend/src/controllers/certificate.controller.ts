@@ -77,7 +77,7 @@ export class CertificateController {
       }
 
       const results = await this.generationService.batchGenerateCertificates(
-        certificates.map(cert => ({
+        certificates.map((cert) => ({
           ...cert,
           completion_date: new Date(cert.completion_date)
         }))
@@ -100,7 +100,7 @@ export class CertificateController {
   getUserCertificates = async (req: Request, res: Response): Promise<void> => {
     try {
       const userId = req.params.userId || (req as any).user.userId;
-      
+
       const certificates = await this.generationService.getUserCertificates(userId);
 
       res.status(200).json({
@@ -257,14 +257,8 @@ export class CertificateController {
 
   createTemplate = async (req: Request, res: Response): Promise<void> => {
     try {
-      const {
-        name,
-        description,
-        background_url,
-        logo_url,
-        watermark_url,
-        template_config
-      } = req.body;
+      const { name, description, background_url, logo_url, watermark_url, template_config } =
+        req.body;
       const user = (req as any).user;
 
       if (!name || !template_config) {
@@ -361,7 +355,9 @@ export class CertificateController {
       const updateData = req.body;
 
       if (updateData.template_config) {
-        const isValidConfig = await this.templateService.validateTemplateConfig(updateData.template_config);
+        const isValidConfig = await this.templateService.validateTemplateConfig(
+          updateData.template_config
+        );
         if (!isValidConfig) {
           res.status(400).json({
             success: false,
@@ -425,14 +421,7 @@ export class CertificateController {
 
   searchCertificates = async (req: Request, res: Response): Promise<void> => {
     try {
-      const {
-        learnerUsername,
-        courseName,
-        dateFrom,
-        dateTo,
-        limit = 10,
-        offset = 0
-      } = req.query;
+      const { learnerUsername, courseName, dateFrom, dateTo, limit = 10, offset = 0 } = req.query;
 
       const searchParams = {
         learnerUsername: learnerUsername as string,

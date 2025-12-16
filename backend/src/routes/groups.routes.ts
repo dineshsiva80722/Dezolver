@@ -79,7 +79,8 @@ const router = Router();
  *                 pagination:
  *                   type: object
  */
-router.get('/', 
+router.get(
+  '/',
   query('page').optional().isInt({ min: 1 }),
   query('limit').optional().isInt({ min: 1, max: 100 }),
   query('search').optional().isString().trim(),
@@ -120,11 +121,7 @@ router.get('/my', authenticate, groupsController.getUserGroups);
  *       404:
  *         description: Group not found
  */
-router.get('/:id',
-  param('id').isUUID(),
-  validate,
-  groupsController.getGroupById
-);
+router.get('/:id', param('id').isUUID(), validate, groupsController.getGroupById);
 
 /**
  * @swagger
@@ -160,7 +157,8 @@ router.get('/:id',
  *       400:
  *         description: Validation error
  */
-router.post('/',
+router.post(
+  '/',
   authenticate,
   body('name')
     .isString()
@@ -172,10 +170,7 @@ router.post('/',
     .trim()
     .isLength({ max: 500 })
     .withMessage('Description must not exceed 500 characters'),
-  body('is_private')
-    .optional()
-    .isBoolean()
-    .withMessage('is_private must be a boolean'),
+  body('is_private').optional().isBoolean().withMessage('is_private must be a boolean'),
   validate,
   groupsController.createGroup
 );
@@ -219,22 +214,13 @@ router.post('/',
  *       404:
  *         description: Group not found
  */
-router.put('/:id',
+router.put(
+  '/:id',
   authenticate,
   param('id').isUUID(),
-  body('name')
-    .optional()
-    .isString()
-    .trim()
-    .isLength({ min: 3, max: 100 }),
-  body('description')
-    .optional()
-    .isString()
-    .trim()
-    .isLength({ max: 500 }),
-  body('is_private')
-    .optional()
-    .isBoolean(),
+  body('name').optional().isString().trim().isLength({ min: 3, max: 100 }),
+  body('description').optional().isString().trim().isLength({ max: 500 }),
+  body('is_private').optional().isBoolean(),
   validate,
   groupsController.updateGroup
 );
@@ -262,12 +248,7 @@ router.put('/:id',
  *       404:
  *         description: Group not found
  */
-router.delete('/:id',
-  authenticate,
-  param('id').isUUID(),
-  validate,
-  groupsController.deleteGroup
-);
+router.delete('/:id', authenticate, param('id').isUUID(), validate, groupsController.deleteGroup);
 
 /**
  * @swagger
@@ -291,7 +272,8 @@ router.delete('/:id',
  *       404:
  *         description: Group not found
  */
-router.post('/join/:code',
+router.post(
+  '/join/:code',
   authenticate,
   param('code').isString().trim().isLength({ min: 6, max: 10 }),
   validate,
@@ -321,7 +303,8 @@ router.post('/join/:code',
  *       404:
  *         description: Group not found
  */
-router.post('/:id/leave',
+router.post(
+  '/:id/leave',
   authenticate,
   param('id').isUUID(),
   validate,
@@ -351,7 +334,8 @@ router.post('/:id/leave',
  *       404:
  *         description: Group not found
  */
-router.get('/:id/members',
+router.get(
+  '/:id/members',
   authenticate,
   param('id').isUUID(),
   validate,
@@ -387,7 +371,8 @@ router.get('/:id/members',
  *       404:
  *         description: Group or member not found
  */
-router.delete('/:id/members/:userId',
+router.delete(
+  '/:id/members/:userId',
   authenticate,
   param('id').isUUID(),
   param('userId').isUUID(),
@@ -424,7 +409,8 @@ router.delete('/:id/members/:userId',
  *       404:
  *         description: Group or member not found
  */
-router.post('/:id/members/:userId/promote',
+router.post(
+  '/:id/members/:userId/promote',
   authenticate,
   param('id').isUUID(),
   param('userId').isUUID(),
@@ -461,7 +447,8 @@ router.post('/:id/members/:userId/promote',
  *       404:
  *         description: Group or member not found
  */
-router.post('/:id/members/:userId/demote',
+router.post(
+  '/:id/members/:userId/demote',
   authenticate,
   param('id').isUUID(),
   param('userId').isUUID(),
@@ -521,7 +508,8 @@ router.post('/:id/members/:userId/demote',
  *       404:
  *         description: Group not found
  */
-router.post('/:id/contests',
+router.post(
+  '/:id/contests',
   authenticate,
   param('id').isUUID(),
   contestValidationRules.create,

@@ -25,10 +25,10 @@ class SocketService {
           return next(new Error('Authentication required'));
         }
 
-        const decoded = jwt.verify(
-          token,
-          process.env.JWT_SECRET || 'your-secret-key'
-        ) as { userId: string; username: string };
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as {
+          userId: string;
+          username: string;
+        };
 
         socket.data.userId = decoded.userId;
         socket.data.username = decoded.username;
@@ -86,7 +86,7 @@ class SocketService {
       // Handle disconnection
       socket.on('disconnect', () => {
         logger.info(`User ${userId} disconnected`);
-        
+
         // Remove from user sockets
         this.userSockets.get(userId)?.delete(socket.id);
         if (this.userSockets.get(userId)?.size === 0) {
@@ -120,7 +120,7 @@ class SocketService {
   emitToUser(userId: string, event: string, data: any) {
     const userSockets = this.userSockets.get(userId);
     if (userSockets && this.io) {
-      userSockets.forEach(socketId => {
+      userSockets.forEach((socketId) => {
         this.io!.to(socketId).emit(event, data);
       });
     }

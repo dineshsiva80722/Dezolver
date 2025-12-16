@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { OrganizationController } from '../controllers/organization.controller';
 import { authenticate } from '../middleware/auth.middleware';
-import { 
-  requirePlatformAdmin, 
-  requireManager, 
+import {
+  requirePlatformAdmin,
+  requireManager,
   requireFeature,
   requireOrganizationAccess,
   enforceUserLimits,
@@ -127,7 +127,12 @@ router.post('/', authenticate, requirePlatformAdmin, organizationController.crea
  *       500:
  *         description: Server error
  */
-router.get('/my', authenticate, requireActiveSubscription, organizationController.getMyOrganization);
+router.get(
+  '/my',
+  authenticate,
+  requireActiveSubscription,
+  organizationController.getMyOrganization
+);
 
 /**
  * @swagger
@@ -153,7 +158,12 @@ router.get('/my', authenticate, requireActiveSubscription, organizationControlle
  *       500:
  *         description: Server error
  */
-router.get('/:organizationId', authenticate, requireOrganizationAccess, organizationController.getOrganization);
+router.get(
+  '/:organizationId',
+  authenticate,
+  requireOrganizationAccess,
+  organizationController.getOrganization
+);
 
 /**
  * @swagger
@@ -177,11 +187,12 @@ router.get('/:organizationId', authenticate, requireOrganizationAccess, organiza
  *       500:
  *         description: Server error
  */
-router.get('/:organizationId/users', 
-  authenticate, 
+router.get(
+  '/:organizationId/users',
+  authenticate,
   requireActiveSubscription,
-  requireManager, 
-  requireOrganizationAccess, 
+  requireManager,
+  requireOrganizationAccess,
   organizationController.getOrganizationUsers
 );
 
@@ -233,10 +244,11 @@ router.get('/:organizationId/users',
  *       500:
  *         description: Server error
  */
-router.post('/:organizationId/users', 
-  authenticate, 
+router.post(
+  '/:organizationId/users',
+  authenticate,
   requireActiveSubscription,
-  requireManager, 
+  requireManager,
   requireOrganizationAccess,
   enforceUserLimits,
   organizationController.addUser
@@ -282,10 +294,11 @@ router.post('/:organizationId/users',
  *       500:
  *         description: Server error
  */
-router.post('/:organizationId/upgrade', 
-  authenticate, 
-  requireManager, 
-  requireOrganizationAccess, 
+router.post(
+  '/:organizationId/upgrade',
+  authenticate,
+  requireManager,
+  requireOrganizationAccess,
   organizationController.upgradePlan
 );
 
@@ -339,6 +352,11 @@ router.get('/user-limits', authenticate, organizationController.checkUserLimits)
  *       500:
  *         description: Server error
  */
-router.get('/platform/stats', authenticate, requirePlatformAdmin, organizationController.getPlatformStats);
+router.get(
+  '/platform/stats',
+  authenticate,
+  requirePlatformAdmin,
+  organizationController.getPlatformStats
+);
 
 export default router;

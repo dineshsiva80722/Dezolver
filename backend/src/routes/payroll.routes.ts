@@ -396,7 +396,11 @@ router.post('/:payrollId/salary-slip/generate', authenticate, payrollController.
  *       500:
  *         description: Server error
  */
-router.post('/salary-slips/batch-generate', authenticate, payrollController.batchGenerateSalarySlips);
+router.post(
+  '/salary-slips/batch-generate',
+  authenticate,
+  payrollController.batchGenerateSalarySlips
+);
 
 /**
  * @swagger

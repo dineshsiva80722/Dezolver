@@ -19,7 +19,7 @@ export const submissionQueue = new Bull('submission-processing', {
   redis: {
     host: redisUrl.hostname,
     port: parseInt(redisUrl.port || '33545'),
-    password: redisUrl.password || undefined,
+    password: redisUrl.password || undefined
   },
   defaultJobOptions: {
     removeOnComplete: true,
@@ -40,12 +40,15 @@ submissionQueue.process('judge-submission', async (job) => {
     logger.info(`Processing submission ${submissionId}`);
 
     // Get test cases for the problem
-    const testCases = await AppDataSource.query(`
+    const testCases = await AppDataSource.query(
+      `
       SELECT id, input, expected_output, is_sample, points
       FROM test_cases
       WHERE problem_id = $1
       ORDER BY is_sample DESC, id ASC
-    `, [problemId]);
+    `,
+      [problemId]
+    );
 
     if (testCases.length === 0) {
       throw new Error('No test cases found for problem');
@@ -60,7 +63,7 @@ submissionQueue.process('judge-submission', async (job) => {
     const submission = await submissionRepository.findOne({
       where: { id: submissionId }
     });
-    
+
     if (submission) {
       socketService.emitToUser(submission.user_id, 'submission-update', {
         id: submissionId,
@@ -71,8 +74,8 @@ submissionQueue.process('judge-submission', async (job) => {
     // Execute code against all test cases
     // Use mock judge if Judge0 is not configured or for development
     const useMockJudge = !process.env.JUDGE0_URL || process.env.USE_MOCK_JUDGE === 'true';
-    
-    const results = useMockJudge 
+
+    const results = useMockJudge
       ? await MockJudgeService.batchExecute(
           testCases.map((tc: any) => ({
             input: tc.input,
@@ -115,7 +118,7 @@ submissionQueue.process('judge-submission', async (job) => {
       maxMemory = Math.max(maxMemory, result.memory || 0);
 
       // Check result
-      const testVerdict = useMockJudge 
+      const testVerdict = useMockJudge
         ? MockJudgeService.mapStatusToVerdict(result.status.id)
         : judge0Service.mapStatusToVerdict(result.status.id);
 
@@ -141,11 +144,14 @@ submissionQueue.process('judge-submission', async (job) => {
 
     // Update user statistics if accepted
     if (verdict === SubmissionVerdict.ACCEPTED) {
-      const isFirstAccepted = await AppDataSource.query(`
+      const isFirstAccepted = await AppDataSource.query(
+        `
         SELECT COUNT(*) as count
         FROM submissions
         WHERE user_id = $1 AND problem_id = $2 AND verdict = 'accepted' AND id < $3
-      `, [submission!.user_id, problemId, submissionId]);
+      `,
+        [submission!.user_id, problemId, submissionId]
+      );
 
       if (isFirstAccepted[0].count === 0) {
         // First time solving this problem
@@ -180,7 +186,7 @@ submissionQueue.process('judge-submission', async (job) => {
     const submission = await submissionRepository.findOne({
       where: { id: submissionId }
     });
-    
+
     if (submission) {
       socketService.emitToUser(submission.user_id, 'submission-update', {
         id: submissionId,
@@ -211,8 +217,8 @@ export const contestQueue = new Bull('contest-processing', {
   redis: {
     host: redisUrl.hostname,
     port: parseInt(redisUrl.port || '33545'),
-    password: redisUrl.password || undefined,
-  },
+    password: redisUrl.password || undefined
+  }
 });
 
 // Process contest events
@@ -222,14 +228,17 @@ contestQueue.process('update-standings', async (job) => {
   try {
     // Update contest standings
     if (verdict === SubmissionVerdict.ACCEPTED) {
-      await AppDataSource.query(`
+      await AppDataSource.query(
+        `
         INSERT INTO contest_standings (contest_id, user_id, score, penalty, last_submission)
         VALUES ($1, $2, $3, 0, NOW())
         ON CONFLICT (contest_id, user_id)
         DO UPDATE SET 
           score = contest_standings.score + $3,
           last_submission = NOW()
-      `, [contestId, userId, score]);
+      `,
+        [contestId, userId, score]
+      );
 
       // Emit real-time standings update
       socketService.emitToContest(contestId, 'standings-update', {

@@ -42,13 +42,12 @@ Output: 21`,
     slug: 'two-sum',
     title: 'Two Sum',
     difficulty: 'easy',
-    statement: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.',
+    statement:
+      'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.',
     input_format: 'First line: array size, Second line: array elements, Third line: target',
     output_format: 'Two space-separated indices',
     constraints: '2 <= nums.length <= 10^4',
-    examples: [
-      { input: '4\n2 7 11 15\n9', output: '0 1' }
-    ],
+    examples: [{ input: '4\n2 7 11 15\n9', output: '0 1' }],
     tags: ['array', 'hash-table'],
     is_public: true,
     time_limit: 1000,
@@ -60,7 +59,7 @@ Output: 21`,
   },
   {
     id: 'palindrome-number',
-    slug: 'palindrome-number', 
+    slug: 'palindrome-number',
     title: 'Palindrome Number',
     difficulty: 'easy',
     statement: 'Given an integer x, return true if x is palindrome integer.',
@@ -92,7 +91,7 @@ export class MockDataService {
   }
 
   static getProblemBySlug(slug: string) {
-    const problem = mockProblems.find(p => p.slug === slug);
+    const problem = mockProblems.find((p) => p.slug === slug);
     if (!problem) {
       throw new Error('Problem not found');
     }
@@ -100,7 +99,7 @@ export class MockDataService {
   }
 
   static getProblemById(id: string) {
-    const problem = mockProblems.find(p => p.id === id || p.slug === id);
+    const problem = mockProblems.find((p) => p.id === id || p.slug === id);
     if (!problem) {
       throw new Error('Problem not found');
     }
@@ -150,7 +149,7 @@ export class MockDataService {
 
   static getSubmissionsForProblem(problemId: string) {
     return Array.from(mockSubmissions.values())
-      .filter(sub => sub.problem_id === problemId)
+      .filter((sub) => sub.problem_id === problemId)
       .sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime());
   }
 }

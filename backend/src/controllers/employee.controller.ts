@@ -37,10 +37,19 @@ export class EmployeeController {
         return;
       }
 
-      if (!user_id || !job_title || !department || !hire_date || !employment_type || !payment_frequency || !basic_salary) {
+      if (
+        !user_id ||
+        !job_title ||
+        !department ||
+        !hire_date ||
+        !employment_type ||
+        !payment_frequency ||
+        !basic_salary
+      ) {
         res.status(400).json({
           success: false,
-          message: 'Missing required fields: user_id, job_title, department, hire_date, employment_type, payment_frequency, basic_salary'
+          message:
+            'Missing required fields: user_id, job_title, department, hire_date, employment_type, payment_frequency, basic_salary'
         });
         return;
       }
@@ -95,10 +104,10 @@ export class EmployeeController {
         department: department as string,
         employment_type: employment_type as EmploymentType,
         is_active: is_active === 'true' ? true : is_active === 'false' ? false : undefined,
-        manager_id: manager_id as string,
+        manager_id: manager_id as string
       };
 
-      Object.keys(filters).forEach(key => {
+      Object.keys(filters).forEach((key) => {
         if (filters[key as keyof typeof filters] === undefined) {
           delete filters[key as keyof typeof filters];
         }
@@ -444,14 +453,7 @@ export class EmployeeController {
 
   searchEmployees = async (req: Request, res: Response): Promise<void> => {
     try {
-      const {
-        query,
-        department,
-        employment_type,
-        is_active,
-        limit = 10,
-        offset = 0
-      } = req.query;
+      const { query, department, employment_type, is_active, limit = 10, offset = 0 } = req.query;
 
       const searchParams = {
         query: query as string,
@@ -490,7 +492,10 @@ export class EmployeeController {
         return;
       }
 
-      const success = await this.employeeService.verifyEmployeeBankDetails(employeeId, currentUser.userId);
+      const success = await this.employeeService.verifyEmployeeBankDetails(
+        employeeId,
+        currentUser.userId
+      );
 
       if (success) {
         res.status(200).json({

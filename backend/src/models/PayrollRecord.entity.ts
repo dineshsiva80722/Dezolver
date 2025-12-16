@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  Index,
+  Index
 } from 'typeorm';
 import { Employee } from './Employee.entity';
 import { User } from './User.entity';
@@ -15,7 +15,7 @@ export enum PayrollStatus {
   DRAFT = 'draft',
   PROCESSED = 'processed',
   PAID = 'paid',
-  CANCELLED = 'cancelled',
+  CANCELLED = 'cancelled'
 }
 
 @Entity('payroll_records')
@@ -97,7 +97,7 @@ export class PayrollRecord {
   @Column({
     type: 'enum',
     enum: PayrollStatus,
-    default: PayrollStatus.DRAFT,
+    default: PayrollStatus.DRAFT
   })
   status: PayrollStatus;
 

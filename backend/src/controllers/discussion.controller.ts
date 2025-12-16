@@ -20,9 +20,12 @@ export class DiscussionController {
 
       // If it's a reply, validate parent exists
       if (parent_id) {
-        const parent = await AppDataSource.query(`
+        const parent = await AppDataSource.query(
+          `
           SELECT id FROM discussions WHERE id = $1
-        `, [parent_id]);
+        `,
+          [parent_id]
+        );
 
         if (parent.length === 0) {
           return res.status(404).json({
@@ -33,18 +36,24 @@ export class DiscussionController {
       }
 
       // Create discussion
-      const result = await AppDataSource.query(`
+      const result = await AppDataSource.query(
+        `
         INSERT INTO discussions (user_id, problem_id, contest_id, parent_id, title, content)
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *
-      `, [userId, problem_id || null, contest_id || null, parent_id || null, title || null, content]);
+      `,
+        [userId, problem_id || null, contest_id || null, parent_id || null, title || null, content]
+      );
 
       const discussion = result[0];
 
       // Get user info
-      const userInfo = await AppDataSource.query(`
+      const userInfo = await AppDataSource.query(
+        `
         SELECT username, full_name, avatar_url FROM users WHERE id = $1
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       discussion.user = userInfo[0];
 
@@ -79,9 +88,12 @@ export class DiscussionController {
       const userId = req.user!.userId;
 
       // Get discussion
-      const discussions = await AppDataSource.query(`
+      const discussions = await AppDataSource.query(
+        `
         SELECT * FROM discussions WHERE id = $1
-      `, [id]);
+      `,
+        [id]
+      );
 
       if (discussions.length === 0) {
         return res.status(404).json({
@@ -93,7 +105,11 @@ export class DiscussionController {
       const discussion = discussions[0];
 
       // Check permissions
-      if (discussion.user_id !== userId && req.user!.role !== UserRole.ADMIN && req.user!.role !== UserRole.MODERATOR) {
+      if (
+        discussion.user_id !== userId &&
+        req.user!.role !== UserRole.ADMIN &&
+        req.user!.role !== UserRole.MODERATOR
+      ) {
         return res.status(403).json({
           success: false,
           message: 'You do not have permission to edit this discussion'
@@ -101,12 +117,15 @@ export class DiscussionController {
       }
 
       // Update discussion
-      const updated = await AppDataSource.query(`
+      const updated = await AppDataSource.query(
+        `
         UPDATE discussions
         SET content = $1, updated_at = CURRENT_TIMESTAMP
         WHERE id = $2
         RETURNING *
-      `, [content, id]);
+      `,
+        [content, id]
+      );
 
       res.json({
         success: true,
@@ -124,9 +143,12 @@ export class DiscussionController {
       const userId = req.user!.userId;
 
       // Get discussion
-      const discussions = await AppDataSource.query(`
+      const discussions = await AppDataSource.query(
+        `
         SELECT * FROM discussions WHERE id = $1
-      `, [id]);
+      `,
+        [id]
+      );
 
       if (discussions.length === 0) {
         return res.status(404).json({
@@ -138,7 +160,11 @@ export class DiscussionController {
       const discussion = discussions[0];
 
       // Check permissions
-      if (discussion.user_id !== userId && req.user!.role !== UserRole.ADMIN && req.user!.role !== UserRole.MODERATOR) {
+      if (
+        discussion.user_id !== userId &&
+        req.user!.role !== UserRole.ADMIN &&
+        req.user!.role !== UserRole.MODERATOR
+      ) {
         return res.status(403).json({
           success: false,
           message: 'You do not have permission to delete this discussion'
@@ -146,11 +172,14 @@ export class DiscussionController {
       }
 
       // Soft delete by setting content
-      await AppDataSource.query(`
+      await AppDataSource.query(
+        `
         UPDATE discussions
         SET content = '[deleted]', updated_at = CURRENT_TIMESTAMP
         WHERE id = $1
-      `, [id]);
+      `,
+        [id]
+      );
 
       res.json({
         success: true,
@@ -163,18 +192,18 @@ export class DiscussionController {
 
   static async getDiscussions(req: Request, res: Response, next: NextFunction) {
     try {
-      const { 
-        problem_id, 
-        contest_id, 
+      const {
+        problem_id,
+        contest_id,
         parent_id,
-        page = 1, 
+        page = 1,
         limit = 20,
         sort = 'created_at',
         order = 'DESC'
       } = req.query;
 
-      let whereConditions = [];
-      let params = [];
+      const whereConditions = [];
+      const params = [];
       let paramCount = 0;
 
       if (problem_id) {
@@ -196,7 +225,8 @@ export class DiscussionController {
         }
       }
 
-      const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+      const whereClause =
+        whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
       // Get total count
       const countQuery = `
@@ -247,11 +277,14 @@ export class DiscussionController {
       const userId = (req as AuthRequest).user?.userId;
       if (userId && discussions.length > 0) {
         const discussionIds = discussions.map((d: any) => d.id);
-        const userVotes = await AppDataSource.query(`
+        const userVotes = await AppDataSource.query(
+          `
           SELECT discussion_id, vote
           FROM discussion_votes
           WHERE user_id = $1 AND discussion_id = ANY($2)
-        `, [userId, discussionIds]);
+        `,
+          [userId, discussionIds]
+        );
 
         const voteMap = userVotes.reduce((acc: any, v: any) => {
           acc[v.discussion_id] = v.vote;
@@ -293,9 +326,12 @@ export class DiscussionController {
       }
 
       // Check if discussion exists
-      const discussions = await AppDataSource.query(`
+      const discussions = await AppDataSource.query(
+        `
         SELECT id FROM discussions WHERE id = $1
-      `, [id]);
+      `,
+        [id]
+      );
 
       if (discussions.length === 0) {
         return res.status(404).json({
@@ -306,35 +342,47 @@ export class DiscussionController {
 
       if (vote === 0) {
         // Remove vote
-        await AppDataSource.query(`
+        await AppDataSource.query(
+          `
           DELETE FROM discussion_votes
           WHERE user_id = $1 AND discussion_id = $2
-        `, [userId, id]);
+        `,
+          [userId, id]
+        );
       } else {
         // Insert or update vote
-        await AppDataSource.query(`
+        await AppDataSource.query(
+          `
           INSERT INTO discussion_votes (user_id, discussion_id, vote)
           VALUES ($1, $2, $3)
           ON CONFLICT (user_id, discussion_id)
           DO UPDATE SET vote = $3
-        `, [userId, id, vote]);
+        `,
+          [userId, id, vote]
+        );
       }
 
       // Get updated vote counts
-      const voteCounts = await AppDataSource.query(`
+      const voteCounts = await AppDataSource.query(
+        `
         SELECT 
           COALESCE(SUM(CASE WHEN vote = 1 THEN 1 ELSE 0 END), 0) as upvotes,
           COALESCE(SUM(CASE WHEN vote = -1 THEN 1 ELSE 0 END), 0) as downvotes
         FROM discussion_votes
         WHERE discussion_id = $1
-      `, [id]);
+      `,
+        [id]
+      );
 
       // Update discussion upvotes count
-      await AppDataSource.query(`
+      await AppDataSource.query(
+        `
         UPDATE discussions
         SET upvotes = $1
         WHERE id = $2
-      `, [voteCounts[0].upvotes, id]);
+      `,
+        [voteCounts[0].upvotes, id]
+      );
 
       res.json({
         success: true,
@@ -363,11 +411,14 @@ export class DiscussionController {
         });
       }
 
-      await AppDataSource.query(`
+      await AppDataSource.query(
+        `
         UPDATE discussions
         SET is_pinned = $1
         WHERE id = $2
-      `, [pinned, id]);
+      `,
+        [pinned, id]
+      );
 
       res.json({
         success: true,
@@ -391,11 +442,14 @@ export class DiscussionController {
         });
       }
 
-      const result = await AppDataSource.query(`
+      const result = await AppDataSource.query(
+        `
         INSERT INTO discussions (user_id, problem_id, contest_id, title, content, is_announcement, is_pinned)
         VALUES ($1, $2, $3, $4, $5, true, true)
         RETURNING *
-      `, [userId, problem_id || null, contest_id || null, title, content]);
+      `,
+        [userId, problem_id || null, contest_id || null, title, content]
+      );
 
       const announcement = result[0];
 

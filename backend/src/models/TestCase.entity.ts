@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn
+} from 'typeorm';
 import { Problem } from './Problem.entity';
 
 @Entity('test_cases')
@@ -9,7 +16,7 @@ export class TestCase {
   @Column({ type: 'uuid' })
   problem_id: string;
 
-  @ManyToOne(() => Problem, problem => problem.test_cases, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Problem, (problem) => problem.test_cases, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'problem_id' })
   problem: Problem;
 

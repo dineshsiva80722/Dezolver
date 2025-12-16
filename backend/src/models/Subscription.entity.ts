@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  JoinColumn,
+  JoinColumn
 } from 'typeorm';
 import { Organization, OrganizationPlan } from './Organization.entity';
 import { User } from './User.entity';
@@ -15,13 +15,13 @@ export enum SubscriptionStatus {
   CANCELLED = 'cancelled',
   PAST_DUE = 'past_due',
   TRIALING = 'trialing',
-  INCOMPLETE = 'incomplete',
+  INCOMPLETE = 'incomplete'
 }
 
 export enum BillingCycle {
   MONTHLY = 'monthly',
   QUARTERLY = 'quarterly',
-  ANNUALLY = 'annually',
+  ANNUALLY = 'annually'
 }
 
 @Entity('subscriptions')
@@ -42,7 +42,7 @@ export class Subscription {
   @Column({
     type: 'enum',
     enum: OrganizationPlan,
-    enumName: 'organization_plan',
+    enumName: 'organization_plan'
   })
   plan: OrganizationPlan;
 
@@ -50,7 +50,7 @@ export class Subscription {
     type: 'enum',
     enum: SubscriptionStatus,
     enumName: 'subscription_status',
-    default: SubscriptionStatus.TRIALING,
+    default: SubscriptionStatus.TRIALING
   })
   status: SubscriptionStatus;
 
@@ -58,7 +58,7 @@ export class Subscription {
     type: 'enum',
     enum: BillingCycle,
     enumName: 'billing_cycle',
-    default: BillingCycle.MONTHLY,
+    default: BillingCycle.MONTHLY
   })
   billing_cycle: BillingCycle;
 

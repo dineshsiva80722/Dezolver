@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   OneToMany,
-  JoinColumn,
+  JoinColumn
 } from 'typeorm';
 import { User } from './User.entity';
 import { Question } from './Question.entity';
@@ -15,13 +15,13 @@ export enum AssessmentType {
   QUIZ = 'quiz',
   TEST = 'test',
   EXAM = 'exam',
-  PRACTICE = 'practice',
+  PRACTICE = 'practice'
 }
 
 export enum AssessmentDifficulty {
   EASY = 'easy',
   MEDIUM = 'medium',
-  HARD = 'hard',
+  HARD = 'hard'
 }
 
 @Entity('assessments')
@@ -38,14 +38,14 @@ export class Assessment {
   @Column({
     type: 'enum',
     enum: AssessmentType,
-    default: AssessmentType.QUIZ,
+    default: AssessmentType.QUIZ
   })
   type: AssessmentType;
 
   @Column({
     type: 'enum',
     enum: AssessmentDifficulty,
-    default: AssessmentDifficulty.MEDIUM,
+    default: AssessmentDifficulty.MEDIUM
   })
   difficulty: AssessmentDifficulty;
 
@@ -84,6 +84,6 @@ export class Assessment {
   @JoinColumn({ name: 'created_by' })
   creator: User;
 
-  @OneToMany(() => Question, question => question.assessment)
+  @OneToMany(() => Question, (question) => question.assessment)
   questions: Question[];
 }

@@ -34,7 +34,7 @@ export class EnhancedQueueService {
     successfulJobs: 0,
     failedJobs: 0,
     averageProcessingTime: 0,
-    totalProcessingTime: 0,
+    totalProcessingTime: 0
   };
 
   // Queue configurations
@@ -45,12 +45,12 @@ export class EnhancedQueueService {
         removeOnFail: 50,
         attempts: 3,
         backoff: { type: 'exponential' as const, delay: 2000 },
-        delay: 0,
+        delay: 0
       } as JobOptions,
       settings: {
         stalledInterval: 30000,
-        maxStalledCount: 1,
-      },
+        maxStalledCount: 1
+      }
     },
     'practice-submissions': {
       defaultJobOptions: {
@@ -58,25 +58,25 @@ export class EnhancedQueueService {
         removeOnFail: 25,
         attempts: 2,
         backoff: { type: 'exponential' as const, delay: 5000 },
-        delay: 1000, // 1 second delay for practice submissions
+        delay: 1000 // 1 second delay for practice submissions
       } as JobOptions,
       settings: {
         stalledInterval: 60000,
-        maxStalledCount: 2,
-      },
+        maxStalledCount: 2
+      }
     },
     'batch-processing': {
       defaultJobOptions: {
         removeOnComplete: 25,
         removeOnFail: 10,
         attempts: 1,
-        delay: 5000, // 5 second delay for batch jobs
+        delay: 5000 // 5 second delay for batch jobs
       } as JobOptions,
       settings: {
         stalledInterval: 120000,
-        maxStalledCount: 3,
-      },
-    },
+        maxStalledCount: 3
+      }
+    }
   };
 
   static getInstance(): EnhancedQueueService {
@@ -99,28 +99,28 @@ export class EnhancedQueueService {
         redis: {
           host: url.hostname,
           port: parseInt(url.port || '33545'),
-          password: url.password || undefined,
+          password: url.password || undefined
         },
         defaultJobOptions: config.defaultJobOptions,
-        settings: config.settings,
+        settings: config.settings
       } as QueueOptions);
-      
+
       // Set up queue event handlers
       this.setupQueueEventHandlers(queue, queueName);
-      
+
       // Set up workers
       this.setupWorkers(queue, queueName);
-      
+
       this.queues.set(queueName, queue);
-      
+
       logger.info(`Queue initialized: ${queueName}`);
     }
 
     // Start queue monitoring
     this.startQueueMonitoring();
 
-    logger.info('Enhanced queue service initialized', { 
-      queueCount: this.queues.size 
+    logger.info('Enhanced queue service initialized', {
+      queueCount: this.queues.size
     });
   }
 
@@ -130,7 +130,7 @@ export class EnhancedQueueService {
   async addSubmission(data: SubmissionJobData): Promise<Job> {
     const queueName = this.selectQueue(data);
     const queue = this.queues.get(queueName);
-    
+
     if (!queue) {
       throw new Error(`Queue not found: ${queueName}`);
     }
@@ -138,18 +138,18 @@ export class EnhancedQueueService {
     const jobOptions: JobOptions = {
       priority: this.getPriority(data.priority),
       jobId: `submission-${data.submissionId}`,
-      delay: this.getDelay(data, queueName),
+      delay: this.getDelay(data, queueName)
     };
 
     const job = await queue.add('process-submission', data, jobOptions);
-    
+
     this.metrics.totalJobs++;
-    
+
     logger.info('Submission added to queue', {
       submissionId: data.submissionId,
       queue: queueName,
       priority: data.priority,
-      jobId: job.id,
+      jobId: job.id
     });
 
     return job;
@@ -162,12 +162,12 @@ export class EnhancedQueueService {
     if (data.contestId) {
       return 'contest-submissions';
     }
-    
+
     // Route based on language or other criteria
     if (data.language === 'java' || data.language === 'cpp') {
       return 'practice-submissions'; // These languages might need more resources
     }
-    
+
     return 'practice-submissions';
   }
 
@@ -176,10 +176,14 @@ export class EnhancedQueueService {
    */
   private getPriority(priority: string): number {
     switch (priority) {
-      case 'high': return 100;
-      case 'medium': return 50;
-      case 'low': return 1;
-      default: return 50;
+      case 'high':
+        return 100;
+      case 'medium':
+        return 50;
+      case 'low':
+        return 1;
+      default:
+        return 50;
     }
   }
 
@@ -190,7 +194,7 @@ export class EnhancedQueueService {
     if (queueName === 'contest-submissions') {
       return 0; // No delay for contest submissions
     }
-    
+
     // Add slight delay for practice submissions to prevent overwhelming
     return 1000; // 1 second
   }
@@ -201,28 +205,29 @@ export class EnhancedQueueService {
   private setupQueueEventHandlers(queue: Queue, queueName: string): void {
     queue.on('completed', (job: Job, result: any) => {
       this.metrics.successfulJobs++;
-      
+
       const processingTime = Date.now() - job.processedOn!;
       this.metrics.totalProcessingTime += processingTime;
-      this.metrics.averageProcessingTime = this.metrics.totalProcessingTime / this.metrics.successfulJobs;
-      
+      this.metrics.averageProcessingTime =
+        this.metrics.totalProcessingTime / this.metrics.successfulJobs;
+
       logger.info('Job completed', {
         queue: queueName,
         jobId: job.id,
         submissionId: job.data.submissionId,
-        processingTime,
+        processingTime
       });
     });
 
     queue.on('failed', (job: Job, err: Error) => {
       this.metrics.failedJobs++;
-      
+
       logger.error('Job failed', {
         queue: queueName,
         jobId: job.id,
         submissionId: job.data.submissionId,
         attempts: job.attemptsMade,
-        error: err.message,
+        error: err.message
       });
     });
 
@@ -230,14 +235,14 @@ export class EnhancedQueueService {
       logger.warn('Job stalled', {
         queue: queueName,
         jobId: job.id,
-        submissionId: job.data.submissionId,
+        submissionId: job.data.submissionId
       });
     });
 
     queue.on('error', (error: Error) => {
       logger.error('Queue error', {
         queue: queueName,
-        error: error.message,
+        error: error.message
       });
     });
   }
@@ -247,7 +252,7 @@ export class EnhancedQueueService {
    */
   private setupWorkers(queue: Queue, queueName: string): void {
     const concurrency = this.getWorkerConcurrency(queueName);
-    
+
     queue.process('process-submission', concurrency, async (job: Job<SubmissionJobData>) => {
       return await this.processSubmission(job);
     });
@@ -260,10 +265,14 @@ export class EnhancedQueueService {
    */
   private getWorkerConcurrency(queueName: string): number {
     switch (queueName) {
-      case 'contest-submissions': return 10; // High concurrency for contests
-      case 'practice-submissions': return 5;  // Medium concurrency for practice
-      case 'batch-processing': return 2;      // Low concurrency for batch jobs
-      default: return 3;
+      case 'contest-submissions':
+        return 10; // High concurrency for contests
+      case 'practice-submissions':
+        return 5; // Medium concurrency for practice
+      case 'batch-processing':
+        return 2; // Low concurrency for batch jobs
+      default:
+        return 3;
     }
   }
 
@@ -272,11 +281,11 @@ export class EnhancedQueueService {
    */
   private async processSubmission(job: Job<SubmissionJobData>): Promise<any> {
     const { submissionId, problemId, language, sourceCode } = job.data;
-    
+
     logger.info('Processing submission', {
       submissionId,
       jobId: job.id,
-      progress: 0,
+      progress: 0
     });
 
     try {
@@ -288,18 +297,18 @@ export class EnhancedQueueService {
       const problemRepository = AppDataSource.getRepository(Problem);
       const testCaseRepository = AppDataSource.getRepository(TestCase);
 
-      const submission = await submissionRepository.findOne({ 
-        where: { id: submissionId } 
+      const submission = await submissionRepository.findOne({
+        where: { id: submissionId }
       });
-      
+
       if (!submission) {
         throw new Error(`Submission not found: ${submissionId}`);
       }
 
-      const problem = await problemRepository.findOne({ 
-        where: { id: problemId } 
+      const problem = await problemRepository.findOne({
+        where: { id: problemId }
       });
-      
+
       if (!problem) {
         throw new Error(`Problem not found: ${problemId}`);
       }
@@ -309,7 +318,7 @@ export class EnhancedQueueService {
       // Get test cases
       const testCases = await testCaseRepository.find({
         where: { problem_id: problemId },
-        order: { is_sample: 'DESC', id: 'ASC' },
+        order: { is_sample: 'DESC', id: 'ASC' }
       });
 
       if (testCases.length === 0) {
@@ -337,9 +346,9 @@ export class EnhancedQueueService {
       await submissionRepository.update(submissionId, {
         verdict,
         score: points,
-        time_used: Math.max(...results.map(r => parseFloat(r.time) || 0)),
-        memory_used: Math.max(...results.map(r => r.memory || 0)),
-        error_message: results.find(r => r.stderr)?.stderr || null,
+        time_used: Math.max(...results.map((r) => parseFloat(r.time) || 0)),
+        memory_used: Math.max(...results.map((r) => r.memory || 0)),
+        error_message: results.find((r) => r.stderr)?.stderr || null
       });
 
       await job.progress(100);
@@ -348,7 +357,7 @@ export class EnhancedQueueService {
         submissionId,
         verdict,
         points,
-        passedTests: `${passedTests}/${testCases.length}`,
+        passedTests: `${passedTests}/${testCases.length}`
       });
 
       return {
@@ -356,20 +365,19 @@ export class EnhancedQueueService {
         verdict,
         points,
         passedTests,
-        totalTests: testCases.length,
+        totalTests: testCases.length
       };
-
     } catch (error) {
       logger.error('Submission processing failed', {
         submissionId,
-        error: error.message,
+        error: error.message
       });
 
       // Update submission with error
       const submissionRepository = AppDataSource.getRepository(Submission);
       await submissionRepository.update(submissionId, {
         verdict: SubmissionVerdict.INTERNAL_ERROR,
-        error_message: error.message,
+        error_message: error.message
       });
 
       throw error;
@@ -392,7 +400,7 @@ export class EnhancedQueueService {
 
     for (let i = 0; i < testCases.length; i++) {
       const testCase = testCases[i];
-      
+
       try {
         const result = await judge0Cluster.executeCode({
           language,
@@ -400,22 +408,21 @@ export class EnhancedQueueService {
           stdin: testCase.input,
           expectedOutput: testCase.expected_output,
           timeLimit: timeLimit / 1000, // Convert to seconds
-          memoryLimit,
+          memoryLimit
         });
 
         results.push(result);
-        
+
         // Stop on first failure for efficiency (optional optimization)
         if (result.status.id !== 3 && !testCase.is_sample) {
           // Continue with sample test cases but stop on first non-sample failure
           // This is an optimization that can be disabled if full test case execution is required
         }
-        
       } catch (error) {
         logger.warn('Test case execution failed', {
           submissionId: job.data.submissionId,
           testCaseId: testCase.id,
-          error: error.message,
+          error: error.message
         });
 
         // Create error result
@@ -425,7 +432,7 @@ export class EnhancedQueueService {
           stderr: error.message,
           compile_output: null,
           time: '0',
-          memory: 0,
+          memory: 0
         });
       }
 
@@ -439,7 +446,10 @@ export class EnhancedQueueService {
   /**
    * Calculate verdict and points from test results
    */
-  private calculateVerdict(results: any[], testCases: TestCase[]): {
+  private calculateVerdict(
+    results: any[],
+    testCases: TestCase[]
+  ): {
     verdict: SubmissionVerdict;
     points: number;
     passedTests: number;
@@ -482,7 +492,7 @@ export class EnhancedQueueService {
 
     // Determine overall verdict
     let verdict: SubmissionVerdict;
-    
+
     if (hasCompilationError) {
       verdict = SubmissionVerdict.COMPILATION_ERROR;
     } else if (hasRuntimeError) {
@@ -520,7 +530,7 @@ export class EnhancedQueueService {
         completed: completed.length,
         failed: failed.length,
         delayed: delayed.length,
-        paused: isPaused ? 1 : 0,
+        paused: isPaused ? 1 : 0
       };
     }
 
@@ -531,13 +541,12 @@ export class EnhancedQueueService {
    * Get processing metrics
    */
   getProcessingMetrics() {
-    const failureRate = this.metrics.totalJobs > 0 
-      ? (this.metrics.failedJobs / this.metrics.totalJobs) * 100 
-      : 0;
+    const failureRate =
+      this.metrics.totalJobs > 0 ? (this.metrics.failedJobs / this.metrics.totalJobs) * 100 : 0;
 
     return {
       ...this.metrics,
-      failureRate: Math.round(failureRate * 100) / 100,
+      failureRate: Math.round(failureRate * 100) / 100
     };
   }
 
@@ -547,13 +556,13 @@ export class EnhancedQueueService {
   private startQueueMonitoring(): void {
     setInterval(async () => {
       const metrics = await this.getQueueMetrics();
-      
+
       // Log queue status
       for (const [queueName, queueMetrics] of Object.entries(metrics)) {
         if (queueMetrics.waiting > 50) {
           logger.warn('High queue depth detected', {
             queue: queueName,
-            waiting: queueMetrics.waiting,
+            waiting: queueMetrics.waiting
           });
         }
       }

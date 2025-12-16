@@ -16,8 +16,15 @@ export class SuperAdminController {
       const admins = await userRepository.find({
         where: { role: UserRole.ADMIN },
         select: [
-          'id', 'username', 'email', 'full_name', 'phone_number',
-          'is_active', 'is_verified', 'created_at', 'last_login',
+          'id',
+          'username',
+          'email',
+          'full_name',
+          'phone_number',
+          'is_active',
+          'is_verified',
+          'created_at',
+          'last_login',
           'contribution_points'
         ],
         order: { created_at: 'DESC' }
@@ -196,8 +203,15 @@ export class SuperAdminController {
       const superAdmins = await userRepository.find({
         where: { role: UserRole.SUPER_ADMIN },
         select: [
-          'id', 'username', 'email', 'full_name', 'phone_number',
-          'is_active', 'is_verified', 'created_at', 'last_login'
+          'id',
+          'username',
+          'email',
+          'full_name',
+          'phone_number',
+          'is_active',
+          'is_verified',
+          'created_at',
+          'last_login'
         ],
         order: { created_at: 'DESC' }
       });

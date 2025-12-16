@@ -11,7 +11,7 @@ export class AddPhoneNumber1700000001000 implements MigrationInterface {
         name: 'phone_number',
         type: 'varchar',
         length: '20',
-        isNullable: true,
+        isNullable: true
       })
     );
   }

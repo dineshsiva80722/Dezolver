@@ -19,7 +19,7 @@ export class ManagerController {
 
       // Verify the requester is a manager
       const manager = await userRepository.findOne({ where: { id: managerId } });
-      
+
       if (!manager || manager.role !== UserRole.MANAGER) {
         return res.status(403).json({
           success: false,
@@ -29,18 +29,14 @@ export class ManagerController {
 
       // Check if username or email already exists
       const existingUser = await userRepository.findOne({
-        where: [
-          { username },
-          { email }
-        ]
+        where: [{ username }, { email }]
       });
 
       if (existingUser) {
         return res.status(400).json({
           success: false,
-          message: existingUser.username === username 
-            ? 'Username already exists' 
-            : 'Email already exists'
+          message:
+            existingUser.username === username ? 'Username already exists' : 'Email already exists'
         });
       }
 
@@ -87,7 +83,7 @@ export class ManagerController {
 
       // Verify the requester is a manager
       const manager = await userRepository.findOne({ where: { id: managerId } });
-      
+
       if (!manager || manager.role !== UserRole.MANAGER) {
         return res.status(403).json({
           success: false,
@@ -99,9 +95,18 @@ export class ManagerController {
       const students = await userRepository.find({
         where: { managed_by: managerId },
         select: [
-          'id', 'username', 'email', 'full_name', 'phone_number',
-          'rating', 'max_rating', 'problems_solved', 'contests_participated_count',
-          'is_active', 'created_at', 'last_login'
+          'id',
+          'username',
+          'email',
+          'full_name',
+          'phone_number',
+          'rating',
+          'max_rating',
+          'problems_solved',
+          'contests_participated_count',
+          'is_active',
+          'created_at',
+          'last_login'
         ],
         order: { created_at: 'DESC' }
       });
@@ -129,7 +134,7 @@ export class ManagerController {
 
       // Verify the requester is a manager
       const manager = await userRepository.findOne({ where: { id: managerId } });
-      
+
       if (!manager || manager.role !== UserRole.MANAGER) {
         return res.status(403).json({
           success: false,
@@ -139,14 +144,26 @@ export class ManagerController {
 
       // Get student and verify they belong to this manager
       const student = await userRepository.findOne({
-        where: { 
+        where: {
           id: studentId,
           managed_by: managerId
         },
         select: [
-          'id', 'username', 'email', 'full_name', 'phone_number',
-          'rating', 'max_rating', 'problems_solved', 'contests_participated_count',
-          'is_active', 'is_verified', 'created_at', 'last_login', 'country', 'institution'
+          'id',
+          'username',
+          'email',
+          'full_name',
+          'phone_number',
+          'rating',
+          'max_rating',
+          'problems_solved',
+          'contests_participated_count',
+          'is_active',
+          'is_verified',
+          'created_at',
+          'last_login',
+          'country',
+          'institution'
         ]
       });
 
@@ -178,7 +195,7 @@ export class ManagerController {
 
       // Verify the requester is a manager
       const manager = await userRepository.findOne({ where: { id: managerId } });
-      
+
       if (!manager || manager.role !== UserRole.MANAGER) {
         return res.status(403).json({
           success: false,
@@ -188,7 +205,7 @@ export class ManagerController {
 
       // Get student and verify they belong to this manager
       const student = await userRepository.findOne({
-        where: { 
+        where: {
           id: studentId,
           managed_by: managerId
         }
@@ -203,8 +220,8 @@ export class ManagerController {
 
       // Fields that managers can update
       const allowedFields = ['full_name', 'phone_number', 'institution', 'country'];
-      
-      allowedFields.forEach(field => {
+
+      allowedFields.forEach((field) => {
         if (updates[field] !== undefined) {
           (student as any)[field] = updates[field];
         }
@@ -235,7 +252,7 @@ export class ManagerController {
 
       // Verify the requester is a manager
       const manager = await userRepository.findOne({ where: { id: managerId } });
-      
+
       if (!manager || manager.role !== UserRole.MANAGER) {
         return res.status(403).json({
           success: false,
@@ -245,7 +262,7 @@ export class ManagerController {
 
       // Get student and verify they belong to this manager
       const student = await userRepository.findOne({
-        where: { 
+        where: {
           id: studentId,
           managed_by: managerId
         }
@@ -283,7 +300,7 @@ export class ManagerController {
 
       // Verify the requester is a manager
       const manager = await userRepository.findOne({ where: { id: managerId } });
-      
+
       if (!manager || manager.role !== UserRole.MANAGER) {
         return res.status(403).json({
           success: false,
@@ -293,7 +310,7 @@ export class ManagerController {
 
       // Get student and verify they belong to this manager
       const student = await userRepository.findOne({
-        where: { 
+        where: {
           id: studentId,
           managed_by: managerId
         }
@@ -330,7 +347,7 @@ export class ManagerController {
 
       // Verify the requester is a manager
       const manager = await userRepository.findOne({ where: { id: managerId } });
-      
+
       if (!manager || manager.role !== UserRole.MANAGER) {
         return res.status(403).json({
           success: false,
@@ -344,7 +361,7 @@ export class ManagerController {
       });
 
       const activeStudents = await userRepository.count({
-        where: { 
+        where: {
           managed_by: managerId,
           is_active: true
         }
@@ -356,10 +373,14 @@ export class ManagerController {
       });
 
       const totalProblemsSolved = students.reduce((sum, s) => sum + (s.problems_solved || 0), 0);
-      const averageRating = students.length > 0 
-        ? Math.round(students.reduce((sum, s) => sum + (s.rating || 0), 0) / students.length)
-        : 0;
-      const totalContests = students.reduce((sum, s) => sum + (s.contests_participated_count || 0), 0);
+      const averageRating =
+        students.length > 0
+          ? Math.round(students.reduce((sum, s) => sum + (s.rating || 0), 0) / students.length)
+          : 0;
+      const totalContests = students.reduce(
+        (sum, s) => sum + (s.contests_participated_count || 0),
+        0
+      );
 
       res.json({
         success: true,
@@ -383,4 +404,3 @@ export class ManagerController {
     }
   }
 }
-

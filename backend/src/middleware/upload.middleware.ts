@@ -17,7 +17,11 @@ const templateStorage = multer.diskStorage({
 });
 
 // File filter for template assets (images only)
-const templateFileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const templateFileFilter = (
+  req: Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback
+) => {
   // Allow image files
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
@@ -31,7 +35,7 @@ export const uploadTemplateAssets = multer({
   storage: templateStorage,
   fileFilter: templateFileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: 10 * 1024 * 1024 // 10MB limit
   }
 }).fields([
   { name: 'background', maxCount: 1 },
@@ -53,7 +57,7 @@ export const uploadSingle = multer({
     }
   }),
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 5 * 1024 * 1024 // 5MB limit
   }
 }).single('file');
 
@@ -68,14 +72,14 @@ import fs from 'fs';
 
 const uploadDirs = [
   'uploads',
-  'uploads/templates', 
+  'uploads/templates',
   'uploads/certificates',
   'uploads/qr-codes',
   'uploads/salary-slips',
   'uploads/general'
 ];
 
-uploadDirs.forEach(dir => {
+uploadDirs.forEach((dir) => {
   const fullPath = path.join(process.cwd(), dir);
   if (!fs.existsSync(fullPath)) {
     fs.mkdirSync(fullPath, { recursive: true });

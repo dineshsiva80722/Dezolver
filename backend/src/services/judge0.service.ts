@@ -81,7 +81,9 @@ class Judge0Service {
         language_id: languageId,
         source_code: Buffer.from(params.sourceCode).toString('base64'),
         stdin: params.stdin ? Buffer.from(params.stdin).toString('base64') : undefined,
-        expected_output: params.expectedOutput ? Buffer.from(params.expectedOutput).toString('base64') : undefined,
+        expected_output: params.expectedOutput
+          ? Buffer.from(params.expectedOutput).toString('base64')
+          : undefined,
         cpu_time_limit: params.timeLimit || 2.0,
         memory_limit: (params.memoryLimit || 256) * 1024, // Convert MB to KB
         enable_per_process_and_thread_time_limit: true,
@@ -95,7 +97,7 @@ class Judge0Service {
         {
           headers: {
             'Content-Type': 'application/json',
-            ...(this.authToken && { 'Authorization': `Bearer ${this.authToken}` })
+            ...(this.authToken && { Authorization: `Bearer ${this.authToken}` })
           }
         }
       );
@@ -112,7 +114,7 @@ class Judge0Service {
           `${this.baseURL}/submissions/${token}?base64_encoded=true`,
           {
             headers: {
-              ...(this.authToken && { 'Authorization': `Bearer ${this.authToken}` })
+              ...(this.authToken && { Authorization: `Bearer ${this.authToken}` })
             }
           }
         );
@@ -124,14 +126,16 @@ class Judge0Service {
           // Decode base64 outputs
           result.stdout = result.stdout ? Buffer.from(result.stdout, 'base64').toString() : null;
           result.stderr = result.stderr ? Buffer.from(result.stderr, 'base64').toString() : null;
-          result.compile_output = result.compile_output ? Buffer.from(result.compile_output, 'base64').toString() : null;
+          result.compile_output = result.compile_output
+            ? Buffer.from(result.compile_output, 'base64').toString()
+            : null;
           result.token = token;
-          
+
           return result;
         }
 
         // Wait before next poll
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         attempts++;
       }
 
@@ -142,15 +146,18 @@ class Judge0Service {
     }
   }
 
-  async batchExecute(testCases: Array<{
-    input: string;
-    expectedOutput: string;
-  }>, params: {
-    language: string;
-    sourceCode: string;
-    timeLimit?: number;
-    memoryLimit?: number;
-  }): Promise<Judge0Result[]> {
+  async batchExecute(
+    testCases: Array<{
+      input: string;
+      expectedOutput: string;
+    }>,
+    params: {
+      language: string;
+      sourceCode: string;
+      timeLimit?: number;
+      memoryLimit?: number;
+    }
+  ): Promise<Judge0Result[]> {
     try {
       const languageId = LANGUAGE_MAP[params.language];
       if (!languageId) {
@@ -158,7 +165,7 @@ class Judge0Service {
       }
 
       // Create batch submissions
-      const submissions = testCases.map(testCase => ({
+      const submissions = testCases.map((testCase) => ({
         language_id: languageId,
         source_code: Buffer.from(params.sourceCode).toString('base64'),
         stdin: Buffer.from(testCase.input).toString('base64'),
@@ -176,7 +183,7 @@ class Judge0Service {
         {
           headers: {
             'Content-Type': 'application/json',
-            ...(this.authToken && { 'Authorization': `Bearer ${this.authToken}` })
+            ...(this.authToken && { Authorization: `Bearer ${this.authToken}` })
           }
         }
       );
@@ -190,12 +197,12 @@ class Judge0Service {
 
       while (attempts < maxAttempts && results.length < tokens.length) {
         const tokensToCheck = tokens.filter((_: any, index: number) => !results[index]);
-        
+
         const statusResponse = await axios.get(
           `${this.baseURL}/submissions/batch?tokens=${tokensToCheck.join(',')}&base64_encoded=true`,
           {
             headers: {
-              ...(this.authToken && { 'Authorization': `Bearer ${this.authToken}` })
+              ...(this.authToken && { Authorization: `Bearer ${this.authToken}` })
             }
           }
         );
@@ -203,18 +210,24 @@ class Judge0Service {
         statusResponse.data.submissions.forEach((submission: Judge0Result, index: number) => {
           if (submission.status.id > 2 && !results[index]) {
             // Decode base64 outputs
-            submission.stdout = submission.stdout ? Buffer.from(submission.stdout, 'base64').toString() : null;
-            submission.stderr = submission.stderr ? Buffer.from(submission.stderr, 'base64').toString() : null;
-            submission.compile_output = submission.compile_output ? Buffer.from(submission.compile_output, 'base64').toString() : null;
+            submission.stdout = submission.stdout
+              ? Buffer.from(submission.stdout, 'base64').toString()
+              : null;
+            submission.stderr = submission.stderr
+              ? Buffer.from(submission.stderr, 'base64').toString()
+              : null;
+            submission.compile_output = submission.compile_output
+              ? Buffer.from(submission.compile_output, 'base64').toString()
+              : null;
             results[index] = submission;
           }
         });
 
-        if (results.filter(r => r).length === tokens.length) {
+        if (results.filter((r) => r).length === tokens.length) {
           break;
         }
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         attempts++;
       }
 
@@ -258,7 +271,7 @@ class Judge0Service {
     try {
       const response = await axios.get(`${this.baseURL}/system_info`, {
         headers: {
-          ...(this.authToken && { 'Authorization': `Bearer ${this.authToken}` })
+          ...(this.authToken && { Authorization: `Bearer ${this.authToken}` })
         },
         timeout: 5000
       });

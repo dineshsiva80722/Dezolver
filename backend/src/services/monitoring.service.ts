@@ -4,32 +4,32 @@ import { logger } from '../utils/logger';
 
 class MonitoringService {
   private register: promClient.Registry;
-  
+
   // HTTP metrics
   private httpRequestDuration: promClient.Histogram<string>;
   private httpRequestTotal: promClient.Counter<string>;
   private httpRequestErrors: promClient.Counter<string>;
-  
+
   // Business metrics
   private submissionsTotal: promClient.Counter<string>;
   private contestRegistrations: promClient.Counter<string>;
   private activeUsers: promClient.Gauge<string>;
   private judgingQueue: promClient.Gauge<string>;
-  
+
   // Database metrics
   private dbConnectionPool: promClient.Gauge<string>;
   private dbQueryDuration: promClient.Histogram<string>;
-  
+
   // WebSocket metrics
   private wsConnections: promClient.Gauge<string>;
   private wsMessages: promClient.Counter<string>;
 
   constructor() {
     this.register = new promClient.Registry();
-    
+
     // Add default metrics (CPU, memory, etc.)
     promClient.collectDefaultMetrics({ register: this.register });
-    
+
     // Initialize custom metrics
     this.initializeMetrics();
   }
@@ -125,7 +125,7 @@ class MonitoringService {
   httpMiddleware() {
     return (req: Request, res: Response, next: Function) => {
       const start = Date.now();
-      
+
       res.on('finish', () => {
         const duration = (Date.now() - start) / 1000;
         const route = req.route?.path || req.path;
@@ -134,10 +134,10 @@ class MonitoringService {
           route: route,
           status_code: res.statusCode.toString()
         };
-        
+
         this.httpRequestDuration.observe(labels, duration);
         this.httpRequestTotal.inc(labels);
-        
+
         if (res.statusCode >= 400) {
           this.httpRequestErrors.inc({
             method: req.method,
@@ -146,7 +146,7 @@ class MonitoringService {
           });
         }
       });
-      
+
       next();
     };
   }
@@ -189,10 +189,13 @@ class MonitoringService {
 
   // Record database query
   recordDatabaseQuery(queryType: string, table: string, duration: number) {
-    this.dbQueryDuration.observe({
-      query_type: queryType,
-      table: table
-    }, duration / 1000); // Convert to seconds
+    this.dbQueryDuration.observe(
+      {
+        query_type: queryType,
+        table: table
+      },
+      duration / 1000
+    ); // Convert to seconds
   }
 
   // Update WebSocket metrics
@@ -270,8 +273,8 @@ class MonitoringService {
       logger.error('Storage health check failed:', error);
     }
 
-    const allHealthy = Object.values(checks).every(check => check);
-    
+    const allHealthy = Object.values(checks).every((check) => check);
+
     return {
       status: allHealthy ? 'healthy' : 'unhealthy',
       checks,

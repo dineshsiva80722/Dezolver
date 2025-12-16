@@ -11,10 +11,10 @@ const config = {
     password: process.env.TEST_USER_PASSWORD || 'testuser123',
     fullName: process.env.TEST_USER_FULLNAME || 'Test User',
     rating: parseInt(process.env.TEST_USER_RATING || '1200'),
-    maxRating: parseInt(process.env.TEST_USER_MAX_RATING || '1200'),
+    maxRating: parseInt(process.env.TEST_USER_MAX_RATING || '1200')
   },
   bcrypt: {
-    saltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS || '10'),
+    saltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS || '10')
   }
 };
 
@@ -26,7 +26,7 @@ async function seed() {
     // Create test user only
     const userRepository = AppDataSource.getRepository(User);
     const hashedPassword = await bcrypt.hash(config.testUser.password, config.bcrypt.saltRounds);
-    
+
     const testUser = userRepository.create({
       username: config.testUser.username,
       email: config.testUser.email,
@@ -35,9 +35,9 @@ async function seed() {
       role: UserRole.USER,
       is_verified: true,
       rating: config.testUser.rating,
-      max_rating: config.testUser.maxRating,
+      max_rating: config.testUser.maxRating
     });
-    
+
     await userRepository.save(testUser);
     console.log('Test user created');
 

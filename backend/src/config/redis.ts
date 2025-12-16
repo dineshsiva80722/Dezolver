@@ -8,7 +8,7 @@ const baseOptions = {
   password: parsed.password || undefined,
   tls: parsed.protocol === 'rediss:' ? {} : undefined,
   maxRetriesPerRequest: null as any,
-  enableOfflineQueue: false,
+  enableOfflineQueue: false
 };
 
 export const redis = new Redis(baseOptions);

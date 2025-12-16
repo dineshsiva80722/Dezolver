@@ -467,7 +467,11 @@ router.get('/:employeeId/reports', authenticate, employeeController.getDirectRep
  *       500:
  *         description: Server error
  */
-router.get('/:employeeId/compensation', authenticate, employeeController.calculateTotalCompensation);
+router.get(
+  '/:employeeId/compensation',
+  authenticate,
+  employeeController.calculateTotalCompensation
+);
 
 /**
  * @swagger
@@ -495,7 +499,8 @@ router.get('/:employeeId/compensation', authenticate, employeeController.calcula
  */
 router.patch('/:employeeId/bank-details/verify', authenticate, (req, res) => {
   // This will be handled by the employee controller
-  const employeeController = new (require('../controllers/employee.controller').EmployeeController)();
+  const employeeController =
+    new (require('../controllers/employee.controller').EmployeeController)();
   return employeeController.verifyBankDetails(req, res);
 });
 

@@ -15,19 +15,25 @@ export class TeamController {
       const inviteCode = uuidv4().substring(0, 8).toUpperCase();
 
       // Create team
-      const result = await AppDataSource.query(`
+      const result = await AppDataSource.query(
+        `
         INSERT INTO teams (name, description, is_public, created_by, invite_code)
         VALUES ($1, $2, $3, $4, $5)
         RETURNING *
-      `, [name, description, is_public !== false, userId, inviteCode]);
+      `,
+        [name, description, is_public !== false, userId, inviteCode]
+      );
 
       const team = result[0];
 
       // Add creator as team leader
-      await AppDataSource.query(`
+      await AppDataSource.query(
+        `
         INSERT INTO team_members (team_id, user_id, role, is_active)
         VALUES ($1, $2, 'leader', true)
-      `, [team.id, userId]);
+      `,
+        [team.id, userId]
+      );
 
       res.status(201).json({
         success: true,
@@ -46,10 +52,13 @@ export class TeamController {
       const userId = req.user!.userId;
 
       // Check if user is team leader
-      const memberCheck = await AppDataSource.query(`
+      const memberCheck = await AppDataSource.query(
+        `
         SELECT role FROM team_members
         WHERE team_id = $1 AND user_id = $2 AND is_active = true
-      `, [id, userId]);
+      `,
+        [id, userId]
+      );
 
       if (memberCheck.length === 0 || memberCheck[0].role !== 'leader') {
         return res.status(403).json({
@@ -59,12 +68,15 @@ export class TeamController {
       }
 
       // Update team
-      const updated = await AppDataSource.query(`
+      const updated = await AppDataSource.query(
+        `
         UPDATE teams
         SET name = $1, description = $2, is_public = $3, updated_at = CURRENT_TIMESTAMP
         WHERE id = $4
         RETURNING *
-      `, [name, description, is_public, id]);
+      `,
+        [name, description, is_public, id]
+      );
 
       res.json({
         success: true,
@@ -81,7 +93,8 @@ export class TeamController {
       const { id } = req.params;
 
       // Get team info with member count
-      const teams = await AppDataSource.query(`
+      const teams = await AppDataSource.query(
+        `
         SELECT 
           t.*,
           COUNT(DISTINCT tm.user_id) as member_count,
@@ -92,7 +105,9 @@ export class TeamController {
         LEFT JOIN users u ON t.created_by = u.id
         WHERE t.id = $1
         GROUP BY t.id, u.id
-      `, [id]);
+      `,
+        [id]
+      );
 
       if (teams.length === 0) {
         return res.status(404).json({
@@ -104,7 +119,8 @@ export class TeamController {
       const team = teams[0];
 
       // Get team members
-      const members = await AppDataSource.query(`
+      const members = await AppDataSource.query(
+        `
         SELECT 
           tm.*,
           u.username,
@@ -122,12 +138,15 @@ export class TeamController {
             ELSE 3
           END,
           tm.joined_at
-      `, [id]);
+      `,
+        [id]
+      );
 
       team.members = members;
 
       // Get team statistics
-      const stats = await AppDataSource.query(`
+      const stats = await AppDataSource.query(
+        `
         SELECT 
           COUNT(DISTINCT tc.contest_id) as contests_participated,
           COUNT(DISTINCT CASE WHEN tcs.rank = 1 THEN tc.contest_id END) as contests_won,
@@ -136,7 +155,9 @@ export class TeamController {
         FROM team_contests tc
         LEFT JOIN team_contest_standings tcs ON tc.team_id = tcs.team_id AND tc.contest_id = tcs.contest_id
         WHERE tc.team_id = $1
-      `, [id]);
+      `,
+        [id]
+      );
 
       team.statistics = stats[0];
 
@@ -151,21 +172,23 @@ export class TeamController {
 
   static async getTeams(req: Request, res: Response, next: NextFunction) {
     try {
-      const { 
+      const {
         search,
         is_public,
-        page = 1, 
+        page = 1,
         limit = 20,
         sort = 'created_at',
         order = 'DESC'
       } = req.query;
 
-      let whereConditions = [];
-      let params = [];
+      const whereConditions = [];
+      const params = [];
       let paramCount = 0;
 
       if (search) {
-        whereConditions.push(`(t.name ILIKE $${++paramCount} OR t.description ILIKE $${paramCount})`);
+        whereConditions.push(
+          `(t.name ILIKE $${++paramCount} OR t.description ILIKE $${paramCount})`
+        );
         params.push(`%${search}%`);
       }
 
@@ -174,7 +197,8 @@ export class TeamController {
         params.push(is_public === 'true');
       }
 
-      const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+      const whereClause =
+        whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
       // Get total count
       const countQuery = `
@@ -233,9 +257,12 @@ export class TeamController {
       const userId = req.user!.userId;
 
       // Find team by invite code
-      const teams = await AppDataSource.query(`
+      const teams = await AppDataSource.query(
+        `
         SELECT id, name, max_members FROM teams WHERE invite_code = $1
-      `, [invite_code]);
+      `,
+        [invite_code]
+      );
 
       if (teams.length === 0) {
         return res.status(404).json({
@@ -247,10 +274,13 @@ export class TeamController {
       const team = teams[0];
 
       // Check if user is already a member
-      const existingMember = await AppDataSource.query(`
+      const existingMember = await AppDataSource.query(
+        `
         SELECT id, is_active FROM team_members
         WHERE team_id = $1 AND user_id = $2
-      `, [team.id, userId]);
+      `,
+        [team.id, userId]
+      );
 
       if (existingMember.length > 0) {
         if (existingMember[0].is_active) {
@@ -260,11 +290,14 @@ export class TeamController {
           });
         } else {
           // Reactivate membership
-          await AppDataSource.query(`
+          await AppDataSource.query(
+            `
             UPDATE team_members
             SET is_active = true, joined_at = CURRENT_TIMESTAMP
             WHERE team_id = $1 AND user_id = $2
-          `, [team.id, userId]);
+          `,
+            [team.id, userId]
+          );
 
           return res.json({
             success: true,
@@ -274,10 +307,13 @@ export class TeamController {
       }
 
       // Check team size limit
-      const memberCount = await AppDataSource.query(`
+      const memberCount = await AppDataSource.query(
+        `
         SELECT COUNT(*) as count FROM team_members
         WHERE team_id = $1 AND is_active = true
-      `, [team.id]);
+      `,
+        [team.id]
+      );
 
       if (parseInt(memberCount[0].count) >= (team.max_members || 10)) {
         return res.status(400).json({
@@ -287,15 +323,21 @@ export class TeamController {
       }
 
       // Add user to team
-      await AppDataSource.query(`
+      await AppDataSource.query(
+        `
         INSERT INTO team_members (team_id, user_id, role)
         VALUES ($1, $2, 'member')
-      `, [team.id, userId]);
+      `,
+        [team.id, userId]
+      );
 
       // Get user info for notification
-      const userInfo = await AppDataSource.query(`
+      const userInfo = await AppDataSource.query(
+        `
         SELECT username, full_name FROM users WHERE id = $1
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       // Notify team members
       socketService.emitToTeam(team.id, 'team-member-joined', {
@@ -320,10 +362,13 @@ export class TeamController {
       const userId = req.user!.userId;
 
       // Check membership
-      const membership = await AppDataSource.query(`
+      const membership = await AppDataSource.query(
+        `
         SELECT role FROM team_members
         WHERE team_id = $1 AND user_id = $2 AND is_active = true
-      `, [id, userId]);
+      `,
+        [id, userId]
+      );
 
       if (membership.length === 0) {
         return res.status(404).json({
@@ -334,10 +379,13 @@ export class TeamController {
 
       // Leaders cannot leave, they must transfer leadership first
       if (membership[0].role === 'leader') {
-        const activeMembers = await AppDataSource.query(`
+        const activeMembers = await AppDataSource.query(
+          `
           SELECT COUNT(*) as count FROM team_members
           WHERE team_id = $1 AND is_active = true AND user_id != $2
-        `, [id, userId]);
+        `,
+          [id, userId]
+        );
 
         if (parseInt(activeMembers[0].count) > 0) {
           return res.status(400).json({
@@ -348,11 +396,14 @@ export class TeamController {
       }
 
       // Mark member as inactive
-      await AppDataSource.query(`
+      await AppDataSource.query(
+        `
         UPDATE team_members
         SET is_active = false, left_at = CURRENT_TIMESTAMP
         WHERE team_id = $1 AND user_id = $2
-      `, [id, userId]);
+      `,
+        [id, userId]
+      );
 
       res.json({
         success: true,
@@ -370,10 +421,13 @@ export class TeamController {
       const requesterId = req.user!.userId;
 
       // Check if requester is team leader
-      const requesterRole = await AppDataSource.query(`
+      const requesterRole = await AppDataSource.query(
+        `
         SELECT role FROM team_members
         WHERE team_id = $1 AND user_id = $2 AND is_active = true
-      `, [id, requesterId]);
+      `,
+        [id, requesterId]
+      );
 
       if (requesterRole.length === 0 || requesterRole[0].role !== 'leader') {
         return res.status(403).json({
@@ -391,11 +445,14 @@ export class TeamController {
       }
 
       // Update member role
-      await AppDataSource.query(`
+      await AppDataSource.query(
+        `
         UPDATE team_members
         SET role = $1
         WHERE team_id = $2 AND user_id = $3 AND is_active = true
-      `, [role, id, user_id]);
+      `,
+        [role, id, user_id]
+      );
 
       res.json({
         success: true,
@@ -412,10 +469,13 @@ export class TeamController {
       const userId = req.user!.userId;
 
       // Verify user is team member
-      const membership = await AppDataSource.query(`
+      const membership = await AppDataSource.query(
+        `
         SELECT role FROM team_members
         WHERE team_id = $1 AND user_id = $2 AND is_active = true
-      `, [team_id, userId]);
+      `,
+        [team_id, userId]
+      );
 
       if (membership.length === 0) {
         return res.status(403).json({
@@ -425,11 +485,14 @@ export class TeamController {
       }
 
       // Check if contest allows team participation
-      const contests = await AppDataSource.query(`
+      const contests = await AppDataSource.query(
+        `
         SELECT id, title, allow_teams, team_size_min, team_size_max, start_time
         FROM contests
         WHERE id = $1
-      `, [contest_id]);
+      `,
+        [contest_id]
+      );
 
       if (contests.length === 0) {
         return res.status(404).json({
@@ -448,10 +511,13 @@ export class TeamController {
       }
 
       // Check team size
-      const teamSize = await AppDataSource.query(`
+      const teamSize = await AppDataSource.query(
+        `
         SELECT COUNT(*) as count FROM team_members
         WHERE team_id = $1 AND is_active = true
-      `, [team_id]);
+      `,
+        [team_id]
+      );
 
       const size = parseInt(teamSize[0].count);
       if (contest.team_size_min && size < contest.team_size_min) {
@@ -469,10 +535,13 @@ export class TeamController {
       }
 
       // Check if already registered
-      const existing = await AppDataSource.query(`
+      const existing = await AppDataSource.query(
+        `
         SELECT id FROM team_contests
         WHERE team_id = $1 AND contest_id = $2
-      `, [team_id, contest_id]);
+      `,
+        [team_id, contest_id]
+      );
 
       if (existing.length > 0) {
         return res.status(400).json({
@@ -482,10 +551,13 @@ export class TeamController {
       }
 
       // Register team
-      await AppDataSource.query(`
+      await AppDataSource.query(
+        `
         INSERT INTO team_contests (team_id, contest_id, registered_by)
         VALUES ($1, $2, $3)
-      `, [team_id, contest_id, userId]);
+      `,
+        [team_id, contest_id, userId]
+      );
 
       // Notify team members
       socketService.emitToTeam(team_id, 'team-contest-registration', {
@@ -508,14 +580,16 @@ export class TeamController {
       const { team_id } = req.params;
       const { status, page = 1, limit = 10 } = req.query;
 
-      let whereConditions = [`tc.team_id = $1`];
-      let params: any[] = [team_id];
-      let paramCount = 1;
+      const whereConditions = [`tc.team_id = $1`];
+      const params: any[] = [team_id];
+      const paramCount = 1;
 
       if (status === 'upcoming') {
         whereConditions.push(`c.start_time > CURRENT_TIMESTAMP`);
       } else if (status === 'ongoing') {
-        whereConditions.push(`c.start_time <= CURRENT_TIMESTAMP AND c.end_time > CURRENT_TIMESTAMP`);
+        whereConditions.push(
+          `c.start_time <= CURRENT_TIMESTAMP AND c.end_time > CURRENT_TIMESTAMP`
+        );
       } else if (status === 'past') {
         whereConditions.push(`c.end_time <= CURRENT_TIMESTAMP`);
       }

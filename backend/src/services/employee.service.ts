@@ -78,7 +78,7 @@ export class EmployeeService {
     const employee = this.employeeRepository.create({
       id: uuidv4(),
       employee_id: employeeId,
-      ...data,
+      ...data
     });
 
     return await this.employeeRepository.save(employee);
@@ -96,7 +96,8 @@ export class EmployeeService {
     is_active?: boolean;
     manager_id?: string;
   }): Promise<Employee[]> {
-    const query = this.employeeRepository.createQueryBuilder('employee')
+    const query = this.employeeRepository
+      .createQueryBuilder('employee')
       .leftJoinAndSelect('employee.user', 'user')
       .leftJoinAndSelect('employee.manager', 'manager')
       .leftJoinAndSelect('manager.user', 'manager_user');
@@ -106,8 +107,8 @@ export class EmployeeService {
     }
 
     if (filters?.employment_type) {
-      query.andWhere('employee.employment_type = :employment_type', { 
-        employment_type: filters.employment_type 
+      query.andWhere('employee.employment_type = :employment_type', {
+        employment_type: filters.employment_type
       });
     }
 
@@ -119,29 +120,27 @@ export class EmployeeService {
       query.andWhere('employee.manager_id = :manager_id', { manager_id: filters.manager_id });
     }
 
-    return await query
-      .orderBy('employee.created_at', 'DESC')
-      .getMany();
+    return await query.orderBy('employee.created_at', 'DESC').getMany();
   }
 
   async getEmployeeById(id: string): Promise<Employee | null> {
     return await this.employeeRepository.findOne({
       where: { id },
-      relations: ['user', 'manager', 'manager.user'],
+      relations: ['user', 'manager', 'manager.user']
     });
   }
 
   async getEmployeeByUserId(userId: string): Promise<Employee | null> {
     return await this.employeeRepository.findOne({
       where: { user_id: userId },
-      relations: ['user', 'manager', 'manager.user'],
+      relations: ['user', 'manager', 'manager.user']
     });
   }
 
   async getEmployeeByEmployeeId(employeeId: string): Promise<Employee | null> {
     return await this.employeeRepository.findOne({
       where: { employee_id: employeeId },
-      relations: ['user', 'manager', 'manager.user'],
+      relations: ['user', 'manager', 'manager.user']
     });
   }
 
@@ -200,29 +199,25 @@ export class EmployeeService {
       .where('employee.is_active = :is_active', { is_active: true })
       .getRawMany();
 
-    return result.map(row => row.department).filter(Boolean);
+    return result.map((row) => row.department).filter(Boolean);
   }
 
   async getManagers(): Promise<Employee[]> {
     const allEmployees = await this.employeeRepository.find({
       where: { is_active: true },
-      relations: ['user'],
+      relations: ['user']
     });
 
-    const managersIds = new Set(
-      allEmployees
-        .map(emp => emp.manager_id)
-        .filter(Boolean)
-    );
+    const managersIds = new Set(allEmployees.map((emp) => emp.manager_id).filter(Boolean));
 
-    return allEmployees.filter(emp => managersIds.has(emp.id));
+    return allEmployees.filter((emp) => managersIds.has(emp.id));
   }
 
   async getDirectReports(managerId: string): Promise<Employee[]> {
     return await this.employeeRepository.find({
-      where: { 
+      where: {
         manager_id: managerId,
-        is_active: true 
+        is_active: true
       },
       relations: ['user'],
       order: { created_at: 'DESC' }
@@ -306,11 +301,11 @@ export class EmployeeService {
 
     if (employee.salary_components) {
       const components = employee.salary_components;
-      totalAllowances += (components.hra || 0);
-      totalAllowances += (components.transport_allowance || 0);
-      totalAllowances += (components.meal_allowance || 0);
-      totalAllowances += (components.medical_allowance || 0);
-      totalAllowances += (components.bonus || 0);
+      totalAllowances += components.hra || 0;
+      totalAllowances += components.transport_allowance || 0;
+      totalAllowances += components.meal_allowance || 0;
+      totalAllowances += components.medical_allowance || 0;
+      totalAllowances += components.bonus || 0;
 
       if (components.custom_allowances && Array.isArray(components.custom_allowances)) {
         for (const allowance of components.custom_allowances) {
@@ -325,11 +320,11 @@ export class EmployeeService {
 
     if (employee.deductions) {
       const deductions = employee.deductions;
-      totalDeductions += (deductions.pf || 0);
-      totalDeductions += (deductions.esi || 0);
-      totalDeductions += (deductions.professional_tax || 0);
-      totalDeductions += (deductions.insurance || 0);
-      totalDeductions += (deductions.loan_deduction || 0);
+      totalDeductions += deductions.pf || 0;
+      totalDeductions += deductions.esi || 0;
+      totalDeductions += deductions.professional_tax || 0;
+      totalDeductions += deductions.insurance || 0;
+      totalDeductions += deductions.loan_deduction || 0;
 
       if (deductions.custom_deductions && Array.isArray(deductions.custom_deductions)) {
         for (const deduction of deductions.custom_deductions) {
@@ -350,7 +345,7 @@ export class EmployeeService {
       total_allowances: totalAllowances,
       total_deductions: totalDeductions,
       gross_salary: grossSalary,
-      net_salary: netSalary,
+      net_salary: netSalary
     };
   }
 
@@ -365,7 +360,8 @@ export class EmployeeService {
     employees: Employee[];
     total: number;
   }> {
-    const query = this.employeeRepository.createQueryBuilder('employee')
+    const query = this.employeeRepository
+      .createQueryBuilder('employee')
       .leftJoinAndSelect('employee.user', 'user')
       .leftJoinAndSelect('employee.manager', 'manager')
       .leftJoinAndSelect('manager.user', 'manager_user');
@@ -378,20 +374,20 @@ export class EmployeeService {
     }
 
     if (searchParams.department) {
-      query.andWhere('employee.department = :department', { 
-        department: searchParams.department 
+      query.andWhere('employee.department = :department', {
+        department: searchParams.department
       });
     }
 
     if (searchParams.employment_type) {
-      query.andWhere('employee.employment_type = :employment_type', { 
-        employment_type: searchParams.employment_type 
+      query.andWhere('employee.employment_type = :employment_type', {
+        employment_type: searchParams.employment_type
       });
     }
 
     if (searchParams.is_active !== undefined) {
-      query.andWhere('employee.is_active = :is_active', { 
-        is_active: searchParams.is_active 
+      query.andWhere('employee.is_active = :is_active', {
+        is_active: searchParams.is_active
       });
     }
 
@@ -405,9 +401,7 @@ export class EmployeeService {
       query.offset(searchParams.offset);
     }
 
-    const employees = await query
-      .orderBy('employee.created_at', 'DESC')
-      .getMany();
+    const employees = await query.orderBy('employee.created_at', 'DESC').getMany();
 
     return { employees, total };
   }

@@ -18,10 +18,24 @@ export class UserController {
       const user = await userRepository.findOne({
         where: { id: userId },
         select: [
-          'id', 'username', 'email', 'full_name', 'bio', 'country',
-          'rating', 'max_rating', 'problems_solved', 'contests_participated_count',
-          'created_at', 'last_login', 'phone_number', 'avatar_url', 'institution',
-          'github_username', 'linkedin_url', 'website_url'
+          'id',
+          'username',
+          'email',
+          'full_name',
+          'bio',
+          'country',
+          'rating',
+          'max_rating',
+          'problems_solved',
+          'contests_participated_count',
+          'created_at',
+          'last_login',
+          'phone_number',
+          'avatar_url',
+          'institution',
+          'github_username',
+          'linkedin_url',
+          'website_url'
         ]
       });
 
@@ -54,12 +68,14 @@ export class UserController {
 
       const totalAssessmentAttempts = assessmentAttempts.length;
       const completedAssessments = assessmentAttempts.filter(
-        a => a.status === 'completed' || a.status === 'evaluated'
+        (a) => a.status === 'completed' || a.status === 'evaluated'
       ).length;
-      const passedAssessments = assessmentAttempts.filter(a => a.is_passed).length;
-      const averageScore = totalAssessmentAttempts > 0
-        ? assessmentAttempts.reduce((sum, a) => sum + (Number(a.percentage) || 0), 0) / totalAssessmentAttempts
-        : 0;
+      const passedAssessments = assessmentAttempts.filter((a) => a.is_passed).length;
+      const averageScore =
+        totalAssessmentAttempts > 0
+          ? assessmentAttempts.reduce((sum, a) => sum + (Number(a.percentage) || 0), 0) /
+            totalAssessmentAttempts
+          : 0;
 
       const userData = {
         ...user,
@@ -70,7 +86,7 @@ export class UserController {
           completed_assessments: completedAssessments,
           passed_assessments: passedAssessments,
           average_score: Math.round(averageScore * 100) / 100,
-          recent_attempts: assessmentAttempts.slice(0, 5).map(attempt => ({
+          recent_attempts: assessmentAttempts.slice(0, 5).map((attempt) => ({
             id: attempt.id,
             assessment_id: attempt.assessment_id,
             assessment_title: attempt.assessment?.title,
@@ -98,10 +114,17 @@ export class UserController {
     try {
       const userId = req.user!.userId;
       const updates = req.body;
-      
+
       // Fields that users can update
-      const allowedFields = ['full_name', 'bio', 'country', 'github_username', 'linkedin_url', 'website_url'];
-      
+      const allowedFields = [
+        'full_name',
+        'bio',
+        'country',
+        'github_username',
+        'linkedin_url',
+        'website_url'
+      ];
+
       const user = await userRepository.findOne({
         where: { id: userId }
       });
@@ -114,7 +137,7 @@ export class UserController {
       }
 
       // Update only allowed fields
-      allowedFields.forEach(field => {
+      allowedFields.forEach((field) => {
         if (updates[field] !== undefined) {
           (user as any)[field] = updates[field];
         }
@@ -135,12 +158,19 @@ export class UserController {
   static async getUserById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      
+
       const user = await userRepository.findOne({
         where: { id },
         select: [
-          'id', 'username', 'full_name', 'bio', 'country',
-          'rating', 'max_rating', 'problems_solved', 'contests_participated_count',
+          'id',
+          'username',
+          'full_name',
+          'bio',
+          'country',
+          'rating',
+          'max_rating',
+          'problems_solved',
+          'contests_participated_count',
           'created_at'
         ]
       });
@@ -191,7 +221,8 @@ export class UserController {
       });
 
       // Get difficulty breakdown from database
-      const difficultyStats = await AppDataSource.query(`
+      const difficultyStats = await AppDataSource.query(
+        `
         SELECT
           p.difficulty,
           COUNT(DISTINCT p.id) as count
@@ -199,7 +230,9 @@ export class UserController {
         INNER JOIN submissions s ON p.id = s.problem_id
         WHERE s.user_id = $1 AND s.verdict = 'accepted'
         GROUP BY p.difficulty
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       // Map difficulty stats
       const difficultyBreakdown = {
@@ -211,18 +244,23 @@ export class UserController {
       difficultyStats.forEach((stat: any) => {
         const difficulty = stat.difficulty.toLowerCase();
         if (difficulty in difficultyBreakdown) {
-          difficultyBreakdown[difficulty as keyof typeof difficultyBreakdown] = parseInt(stat.count);
+          difficultyBreakdown[difficulty as keyof typeof difficultyBreakdown] = parseInt(
+            stat.count
+          );
         }
       });
 
       // Get weekly and monthly activity from database
-      const activityStats = await AppDataSource.query(`
+      const activityStats = await AppDataSource.query(
+        `
         SELECT
           COUNT(CASE WHEN s.created_at >= NOW() - INTERVAL '7 days' THEN 1 END) as weekly_activity,
           COUNT(CASE WHEN s.created_at >= NOW() - INTERVAL '30 days' THEN 1 END) as monthly_activity
         FROM submissions s
         WHERE s.user_id = $1
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       // Get assessment statistics
       const assessmentAttempts = await assessmentAttemptRepository.find({
@@ -233,12 +271,14 @@ export class UserController {
 
       const totalAssessmentAttempts = assessmentAttempts.length;
       const completedAssessments = assessmentAttempts.filter(
-        a => a.status === 'completed' || a.status === 'evaluated'
+        (a) => a.status === 'completed' || a.status === 'evaluated'
       ).length;
-      const passedAssessments = assessmentAttempts.filter(a => a.is_passed).length;
-      const averageAssessmentScore = totalAssessmentAttempts > 0
-        ? assessmentAttempts.reduce((sum, a) => sum + (Number(a.percentage) || 0), 0) / totalAssessmentAttempts
-        : 0;
+      const passedAssessments = assessmentAttempts.filter((a) => a.is_passed).length;
+      const averageAssessmentScore =
+        totalAssessmentAttempts > 0
+          ? assessmentAttempts.reduce((sum, a) => sum + (Number(a.percentage) || 0), 0) /
+            totalAssessmentAttempts
+          : 0;
 
       const stats = {
         problemsSolved: user.problems_solved || 0,
@@ -298,7 +338,8 @@ export class UserController {
       });
 
       // Get difficulty breakdown from database
-      const difficultyStats = await AppDataSource.query(`
+      const difficultyStats = await AppDataSource.query(
+        `
         SELECT
           p.difficulty,
           COUNT(DISTINCT p.id) as count
@@ -306,7 +347,9 @@ export class UserController {
         INNER JOIN submissions s ON p.id = s.problem_id
         WHERE s.user_id = $1 AND s.verdict = 'accepted'
         GROUP BY p.difficulty
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       // Map difficulty stats
       const difficultyBreakdown = {
@@ -318,18 +361,23 @@ export class UserController {
       difficultyStats.forEach((stat: any) => {
         const difficulty = stat.difficulty.toLowerCase();
         if (difficulty in difficultyBreakdown) {
-          difficultyBreakdown[difficulty as keyof typeof difficultyBreakdown] = parseInt(stat.count);
+          difficultyBreakdown[difficulty as keyof typeof difficultyBreakdown] = parseInt(
+            stat.count
+          );
         }
       });
 
       // Get weekly and monthly activity from database
-      const activityStats = await AppDataSource.query(`
+      const activityStats = await AppDataSource.query(
+        `
         SELECT
           COUNT(CASE WHEN s.created_at >= NOW() - INTERVAL '7 days' THEN 1 END) as weekly_activity,
           COUNT(CASE WHEN s.created_at >= NOW() - INTERVAL '30 days' THEN 1 END) as monthly_activity
         FROM submissions s
         WHERE s.user_id = $1
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       // Get assessment statistics
       const assessmentAttempts = await assessmentAttemptRepository.find({
@@ -340,12 +388,14 @@ export class UserController {
 
       const totalAssessmentAttempts = assessmentAttempts.length;
       const completedAssessments = assessmentAttempts.filter(
-        a => a.status === 'completed' || a.status === 'evaluated'
+        (a) => a.status === 'completed' || a.status === 'evaluated'
       ).length;
-      const passedAssessments = assessmentAttempts.filter(a => a.is_passed).length;
-      const averageAssessmentScore = totalAssessmentAttempts > 0
-        ? assessmentAttempts.reduce((sum, a) => sum + (Number(a.percentage) || 0), 0) / totalAssessmentAttempts
-        : 0;
+      const passedAssessments = assessmentAttempts.filter((a) => a.is_passed).length;
+      const averageAssessmentScore =
+        totalAssessmentAttempts > 0
+          ? assessmentAttempts.reduce((sum, a) => sum + (Number(a.percentage) || 0), 0) /
+            totalAssessmentAttempts
+          : 0;
 
       const stats = {
         problemsSolved: user.problems_solved || 0,

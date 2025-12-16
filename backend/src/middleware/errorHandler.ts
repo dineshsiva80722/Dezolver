@@ -20,12 +20,12 @@ export const errorHandler = (
   // Extract context from request
   const context = ErrorLogger.extractContextFromRequest(req);
   context.component = 'errorHandler';
-  
+
   let statusCode = 500;
   let message = 'Internal Server Error';
   let errorType = ErrorType.UNKNOWN;
   let severity = ErrorSeverity.HIGH;
-  let errors: any[] = [];
+  const errors: any[] = [];
   let isOperational = true;
 
   // Handle AppError instances
@@ -35,7 +35,7 @@ export const errorHandler = (
     errorType = error.type;
     severity = error.severity;
     isOperational = error.isOperational;
-    
+
     // Set correlation context if not already set
     if (!error.correlationId && (req as any).correlationId) {
       error.setContext((req as any).correlationId, (req as any).user?.userId);
@@ -48,7 +48,7 @@ export const errorHandler = (
     errorType = convertedError.type;
     severity = convertedError.severity;
     isOperational = convertedError.isOperational;
-    
+
     // Set context
     convertedError.setContext((req as any).correlationId, (req as any).user?.userId);
     error = convertedError;
@@ -57,7 +57,7 @@ export const errorHandler = (
   // Log error with full context
   ErrorLogger.logError(error, {
     ...context,
-    operation: `${req.method} ${req.path}`,
+    operation: `${req.method} ${req.path}`
   });
 
   // Prepare error response
@@ -66,7 +66,7 @@ export const errorHandler = (
     message: sanitizeErrorMessage(message, process.env.NODE_ENV === 'production'),
     statusCode,
     correlationId: (req as any).correlationId,
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   };
 
   // Add validation errors if present
@@ -81,7 +81,7 @@ export const errorHandler = (
       type: errorType,
       severity,
       isOperational,
-      stack: error.stack,
+      stack: error.stack
     };
   }
 
@@ -91,7 +91,7 @@ export const errorHandler = (
   // Set additional response headers
   res.set('X-Error-Type', errorType);
   res.set('X-Error-Severity', severity);
-  
+
   // Send error response
   res.status(statusCode).json(errorResponse);
 };
@@ -104,7 +104,7 @@ function convertToAppError(error: CustomError): AppError {
   let message = error.message || 'Internal Server Error';
   let type = ErrorType.UNKNOWN;
   let severity = ErrorSeverity.HIGH;
-  let isOperational = true;
+  const isOperational = true;
 
   // Handle specific error types
   if (error.name === 'ValidationError') {
@@ -154,7 +154,7 @@ function convertToAppError(error: CustomError): AppError {
 
   return new AppError(message, type, statusCode, severity, isOperational, {
     originalError: error.name,
-    originalMessage: error.message,
+    originalMessage: error.message
   });
 }
 
@@ -174,11 +174,11 @@ function sanitizeErrorMessage(message: string, isProduction: boolean): string {
     /key/gi,
     /connection string/gi,
     /database.*error/gi,
-    /query.*failed/gi,
+    /query.*failed/gi
   ];
 
-  let sanitized = message;
-  
+  const sanitized = message;
+
   for (const pattern of sensitivePatterns) {
     if (pattern.test(sanitized)) {
       return 'Internal server error occurred';
@@ -194,6 +194,6 @@ function sanitizeErrorMessage(message: string, isProduction: boolean): string {
 function getErrorCode(type: ErrorType, errorName: string): string {
   const typeCode = type.toUpperCase();
   const nameCode = errorName.replace(/Error$/, '').toUpperCase();
-  
+
   return `${typeCode}_${nameCode}`;
 }

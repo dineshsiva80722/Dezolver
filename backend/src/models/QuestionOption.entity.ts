@@ -4,7 +4,7 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
-  JoinColumn,
+  JoinColumn
 } from 'typeorm';
 import { Question } from './Question.entity';
 
@@ -29,7 +29,7 @@ export class QuestionOption {
   created_at: Date;
 
   // Relations
-  @ManyToOne(() => Question, question => question.options, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Question, (question) => question.options, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'question_id' })
   question: Question;
 }

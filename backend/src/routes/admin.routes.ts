@@ -20,8 +20,12 @@ router.put('/users/:id/unban', AdminController.unbanUser);
 router.delete('/users/:id', AdminController.deleteUser);
 
 // Manager management
-router.post('/managers',
-  body('username').trim().isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
+router.post(
+  '/managers',
+  body('username')
+    .trim()
+    .isLength({ min: 3 })
+    .withMessage('Username must be at least 3 characters'),
   body('email').isEmail().withMessage('Valid email required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   body('full_name').trim().isLength({ min: 2 }).withMessage('Full name required'),

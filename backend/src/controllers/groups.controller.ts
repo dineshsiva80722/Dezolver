@@ -24,24 +24,24 @@ const generateInviteCode = (): string => {
 
 // Helper function to check if user is group owner
 const isGroupOwner = async (groupId: string, userId: string): Promise<boolean> => {
-  const result = await pgPool.query(
-    'SELECT owner_id FROM groups WHERE id = $1',
-    [groupId]
-  );
+  const result = await pgPool.query('SELECT owner_id FROM groups WHERE id = $1', [groupId]);
   return result.rows.length > 0 && result.rows[0].owner_id === userId;
 };
 
 // Helper function to check if user is group manager or owner
 const isGroupManagerOrOwner = async (groupId: string, userId: string): Promise<boolean> => {
-  const result = await pgPool.query(`
+  const result = await pgPool.query(
+    `
     SELECT g.owner_id, gm.role 
     FROM groups g
     LEFT JOIN group_members gm ON g.id = gm.group_id AND gm.user_id = $2
     WHERE g.id = $1
-  `, [groupId, userId]);
-  
+  `,
+    [groupId, userId]
+  );
+
   if (result.rows.length === 0) return false;
-  
+
   const row = result.rows[0];
   return row.owner_id === userId || row.role === 'manager';
 };
@@ -50,7 +50,7 @@ export const getGroups = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
-    const search = req.query.search as string || '';
+    const search = (req.query.search as string) || '';
     const offset = (page - 1) * limit;
 
     let whereClause = 'WHERE is_private = false';
@@ -203,7 +203,7 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response) => {
     const inviteCode = generateInviteCode();
 
     const client = await pgPool.connect();
-    
+
     try {
       await client.query('BEGIN');
 
@@ -213,9 +213,14 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response) => {
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *
       `;
-      
+
       const groupResult = await client.query(groupQuery, [
-        groupId, name, description, inviteCode, is_private, userId
+        groupId,
+        name,
+        description,
+        inviteCode,
+        is_private,
+        userId
       ]);
 
       // Add owner as member
@@ -226,7 +231,7 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response) => {
 
       await client.query('COMMIT');
 
-      res.status(201).json({ 
+      res.status(201).json({
         message: 'Group created successfully',
         group: {
           ...groupResult.rows[0],
@@ -246,7 +251,7 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response) => {
     }
   } catch (error) {
     logger.error('Error creating group:', error);
-    if ((error as any).code === '23505') {
+    if (error.code === '23505') {
       res.status(400).json({ error: 'Group name already exists' });
     } else {
       res.status(500).json({ error: 'Internal server error' });
@@ -306,7 +311,7 @@ export const updateGroup = async (req: AuthenticatedRequest, res: Response) => {
       return res.status(404).json({ error: 'Group not found' });
     }
 
-    res.json({ 
+    res.json({
       message: 'Group updated successfully',
       group: result.rows[0]
     });
@@ -324,15 +329,12 @@ export const deleteGroup = async (req: AuthenticatedRequest, res: Response) => {
 
     // Check if user is owner or admin
     const isOwner = await isGroupOwner(groupId, userId);
-    
+
     if (!isOwner && userRole !== 'admin') {
       return res.status(403).json({ error: 'Only group owner or admin can delete group' });
     }
 
-    const result = await pgPool.query(
-      'DELETE FROM groups WHERE id = $1 RETURNING *',
-      [groupId]
-    );
+    const result = await pgPool.query('DELETE FROM groups WHERE id = $1 RETURNING *', [groupId]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Group not found' });
@@ -351,10 +353,9 @@ export const joinGroup = async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user!.userId;
 
     // Find group by invite code
-    const groupResult = await pgPool.query(
-      'SELECT * FROM groups WHERE invite_code = $1',
-      [inviteCode]
-    );
+    const groupResult = await pgPool.query('SELECT * FROM groups WHERE invite_code = $1', [
+      inviteCode
+    ]);
 
     if (groupResult.rows.length === 0) {
       return res.status(404).json({ error: 'Invalid invite code' });
@@ -378,7 +379,7 @@ export const joinGroup = async (req: AuthenticatedRequest, res: Response) => {
       [group.id, userId, 'member']
     );
 
-    res.json({ 
+    res.json({
       message: 'Successfully joined group',
       group: {
         ...group,
@@ -401,9 +402,11 @@ export const leaveGroup = async (req: AuthenticatedRequest, res: Response) => {
 
     // Check if user is owner
     const isOwner = await isGroupOwner(groupId, userId);
-    
+
     if (isOwner) {
-      return res.status(400).json({ error: 'Group owner cannot leave group. Transfer ownership or delete group.' });
+      return res
+        .status(400)
+        .json({ error: 'Group owner cannot leave group. Transfer ownership or delete group.' });
     }
 
     const result = await pgPool.query(
@@ -434,7 +437,7 @@ export const getGroupMembers = async (req: AuthenticatedRequest, res: Response) 
     );
 
     const isOwner = await isGroupOwner(groupId, userId);
-    
+
     if (memberCheck.rows.length === 0 && !isOwner && req.user!.role !== 'admin') {
       return res.status(403).json({ error: 'Access denied' });
     }
@@ -481,7 +484,7 @@ export const removeMember = async (req: AuthenticatedRequest, res: Response) => 
 
     // Check if user has permission to remove members
     const canManage = await isGroupManagerOrOwner(groupId, userId);
-    
+
     if (!canManage && req.user!.role !== 'admin') {
       return res.status(403).json({ error: 'Insufficient permissions' });
     }
@@ -516,7 +519,7 @@ export const promoteMember = async (req: AuthenticatedRequest, res: Response) =>
 
     // Only owner can promote
     const isOwner = await isGroupOwner(groupId, userId);
-    
+
     if (!isOwner) {
       return res.status(403).json({ error: 'Only group owner can promote members' });
     }
@@ -545,7 +548,7 @@ export const demoteMember = async (req: AuthenticatedRequest, res: Response) => 
 
     // Only owner can demote
     const isOwner = await isGroupOwner(groupId, userId);
-    
+
     if (!isOwner) {
       return res.status(403).json({ error: 'Only group owner can demote managers' });
     }

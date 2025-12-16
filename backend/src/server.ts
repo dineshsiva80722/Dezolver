@@ -18,15 +18,15 @@ socketService.initialize(server);
 // Graceful shutdown
 const gracefulShutdown = async (signal: string) => {
   logger.info(`${signal} received. Starting graceful shutdown...`);
-  
+
   server.close(() => {
     logger.info('HTTP server closed');
   });
-  
+
   // Close database connections
   // Close Redis connections
   // Close other resources
-  
+
   process.exit(0);
 };
 
@@ -38,11 +38,11 @@ const startServer = async () => {
     // Connect to database
     await connectDatabase();
     logger.info('Database connected successfully');
-    
+
     // Connect to Redis
     await connectRedis();
     logger.info('Redis connected successfully');
-    
+
     // Start server
     server.listen(PORT, () => {
       logger.info(`Server is running on http://${HOST}:${PORT}`);

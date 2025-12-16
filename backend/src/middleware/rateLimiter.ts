@@ -15,19 +15,15 @@ class RedisStore {
   async increment(key: string): Promise<{ totalHits: number; resetTime: Date | undefined }> {
     const prefixedKey = this.prefix + key;
     const ttl = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000') / 1000;
-    
-    const results = await this.client
-      .multi()
-      .incr(prefixedKey)
-      .expire(prefixedKey, ttl)
-      .exec();
+
+    const results = await this.client.multi().incr(prefixedKey).expire(prefixedKey, ttl).exec();
 
     if (!results) {
       throw new Error('Redis operation failed');
     }
 
     const totalHits = results[0][1] as number;
-    
+
     return {
       totalHits,
       resetTime: new Date(Date.now() + ttl * 1000)
@@ -61,7 +57,7 @@ export const rateLimiter = rateLimit({
   skip: (req: Request): boolean => {
     // Skip rate limiting for certain paths or conditions
     const whitelist = ['/health', '/api-docs'];
-    return whitelist.some(path => req.path.startsWith(path));
+    return whitelist.some((path) => req.path.startsWith(path));
   }
 });
 

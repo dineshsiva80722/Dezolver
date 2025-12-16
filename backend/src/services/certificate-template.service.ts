@@ -34,36 +34,35 @@ export class CertificateTemplateService {
   async createTemplate(data: CreateTemplateDTO): Promise<CertificateTemplate> {
     const template = this.templateRepository.create({
       id: uuidv4(),
-      ...data,
+      ...data
     });
 
     return await this.templateRepository.save(template);
   }
 
   async getTemplates(isActive?: boolean): Promise<CertificateTemplate[]> {
-    const query = this.templateRepository.createQueryBuilder('template')
+    const query = this.templateRepository
+      .createQueryBuilder('template')
       .leftJoinAndSelect('template.created_by', 'created_by');
 
     if (isActive !== undefined) {
       query.where('template.is_active = :isActive', { isActive });
     }
 
-    return await query
-      .orderBy('template.created_at', 'DESC')
-      .getMany();
+    return await query.orderBy('template.created_at', 'DESC').getMany();
   }
 
   async getTemplateById(id: string): Promise<CertificateTemplate | null> {
     return await this.templateRepository.findOne({
       where: { id },
-      relations: ['created_by'],
+      relations: ['created_by']
     });
   }
 
   async getDefaultTemplate(): Promise<CertificateTemplate | null> {
     return await this.templateRepository.findOne({
       where: { is_default: true, is_active: true },
-      relations: ['created_by'],
+      relations: ['created_by']
     });
   }
 
@@ -83,13 +82,15 @@ export class CertificateTemplateService {
     await queryRunner.startTransaction();
 
     try {
-      await queryRunner.manager.update(CertificateTemplate, 
-        { is_default: true }, 
+      await queryRunner.manager.update(
+        CertificateTemplate,
+        { is_default: true },
         { is_default: false }
       );
 
-      await queryRunner.manager.update(CertificateTemplate, 
-        { id }, 
+      await queryRunner.manager.update(
+        CertificateTemplate,
+        { id },
         { is_default: true, is_active: true }
       );
 
@@ -143,10 +144,9 @@ export class CertificateTemplateService {
       if (!config.placeholders[placeholder]) {
         return false;
       }
-      
+
       const placeholderConfig = config.placeholders[placeholder];
-      if (typeof placeholderConfig.x !== 'number' || 
-          typeof placeholderConfig.y !== 'number') {
+      if (typeof placeholderConfig.x !== 'number' || typeof placeholderConfig.y !== 'number') {
         return false;
       }
     }
@@ -159,7 +159,7 @@ export class CertificateTemplateService {
       layout: {
         width: 800,
         height: 600,
-        orientation: 'landscape' as const,
+        orientation: 'landscape' as const
       },
       placeholders: {
         learnerName: {
@@ -167,49 +167,49 @@ export class CertificateTemplateService {
           y: 200,
           fontSize: 36,
           fontFamily: 'Arial',
-          color: '#000000',
+          color: '#000000'
         },
         courseName: {
           x: 400,
           y: 280,
           fontSize: 24,
           fontFamily: 'Arial',
-          color: '#333333',
+          color: '#333333'
         },
         completionDate: {
           x: 400,
           y: 350,
           fontSize: 18,
           fontFamily: 'Arial',
-          color: '#666666',
+          color: '#666666'
         },
         instructorName: {
           x: 200,
           y: 500,
           fontSize: 16,
           fontFamily: 'Arial',
-          color: '#666666',
+          color: '#666666'
         },
         certificateId: {
           x: 600,
           y: 500,
           fontSize: 12,
           fontFamily: 'Arial',
-          color: '#999999',
+          color: '#999999'
         },
         qrCode: {
           x: 700,
           y: 450,
-          size: 80,
-        },
+          size: 80
+        }
       },
       fonts: ['Arial', 'Times New Roman', 'Helvetica'],
       language: 'en',
       colors: {
         primary: '#007bff',
         secondary: '#6c757d',
-        text: '#000000',
-      },
+        text: '#000000'
+      }
     };
   }
 }

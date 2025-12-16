@@ -14,7 +14,7 @@ services:
     privileged: true
     environment:
       - RAILS_ENV=production
-      - REDIS_URL=redis://redis-judge0:6379
+      - REDIS_URL=redis://redis-judge0:33545
       - DATABASE_URL=postgresql://judge0:password@postgres-judge0:5432/judge0
       - REDIS_PASSWORD=
       - POSTGRES_PASSWORD=password
@@ -52,7 +52,7 @@ services:
     privileged: true
     environment:
       - RAILS_ENV=production
-      - REDIS_URL=redis://redis-judge0:6379
+      - REDIS_URL=redis://redis-judge0:33545
       - DATABASE_URL=postgresql://judge0:password@postgres-judge0:5432/judge0
       - REDIS_PASSWORD=
       - POSTGRES_PASSWORD=password
@@ -90,7 +90,7 @@ services:
     privileged: true
     environment:
       - RAILS_ENV=production
-      - REDIS_URL=redis://redis-judge0:6379
+      - REDIS_URL=redis://redis-judge0:33545
       - DATABASE_URL=postgresql://judge0:password@postgres-judge0:5432/judge0
       - REDIS_PASSWORD=
       - POSTGRES_PASSWORD=password
@@ -128,7 +128,7 @@ services:
     privileged: true
     environment:
       - RAILS_ENV=production
-      - REDIS_URL=redis://redis-judge0:6379
+      - REDIS_URL=redis://redis-judge0:33545
       - DATABASE_URL=postgresql://judge0:password@postgres-judge0:5432/judge0
       - REDIS_PASSWORD=
       - POSTGRES_PASSWORD=password
@@ -166,7 +166,7 @@ services:
     privileged: true
     environment:
       - RAILS_ENV=production
-      - REDIS_URL=redis://redis-judge0:6379
+      - REDIS_URL=redis://redis-judge0:33545
       - DATABASE_URL=postgresql://judge0:password@postgres-judge0:5432/judge0
       - REDIS_PASSWORD=
       - POSTGRES_PASSWORD=password
@@ -222,7 +222,9 @@ services:
     image: redis:6-alpine
     container_name: redis-judge0
     restart: unless-stopped
-    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --port 33545 --maxmemory 1gb --maxmemory-policy allkeys-lru
+    ports:
+      - "33545:33545"
     volumes:
       - judge0-redis-data:/data
     networks:

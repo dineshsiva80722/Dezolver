@@ -54,7 +54,7 @@ export class Judge0ClusterService {
     totalRequests: 0,
     successfulRequests: 0,
     failedRequests: 0,
-    totalResponseTime: 0,
+    totalResponseTime: 0
   };
 
   private readonly LANGUAGE_MAP: Record<string, number> = {
@@ -78,12 +78,14 @@ export class Judge0ClusterService {
   /**
    * Initialize the cluster with instance configurations
    */
-  async initialize(instanceConfigs: Array<{ url: string; authToken?: string; weight?: number }>): Promise<void> {
+  async initialize(
+    instanceConfigs: Array<{ url: string; authToken?: string; weight?: number }>
+  ): Promise<void> {
     logger.info('Initializing Judge0 cluster', { instanceCount: instanceConfigs.length });
 
     for (const config of instanceConfigs) {
       const instanceId = this.generateInstanceId(config.url);
-      
+
       const instance: Judge0Instance = {
         id: instanceId,
         url: config.url,
@@ -91,7 +93,7 @@ export class Judge0ClusterService {
         isHealthy: false,
         lastHealthCheck: new Date(),
         weight: config.weight || 1,
-        currentLoad: 0,
+        currentLoad: 0
       };
 
       const client = axios.create({
@@ -99,8 +101,8 @@ export class Judge0ClusterService {
         timeout: 30000, // 30 seconds
         headers: {
           'Content-Type': 'application/json',
-          ...(config.authToken && { 'Authorization': `Bearer ${config.authToken}` }),
-        },
+          ...(config.authToken && { Authorization: `Bearer ${config.authToken}` })
+        }
       });
 
       this.instances.set(instanceId, instance);
@@ -113,7 +115,7 @@ export class Judge0ClusterService {
     // Start periodic health checks
     this.startHealthChecks();
 
-    logger.info('Judge0 cluster initialized', { 
+    logger.info('Judge0 cluster initialized', {
       totalInstances: this.instances.size,
       healthyInstances: this.getHealthyInstances().length
     });
@@ -129,7 +131,7 @@ export class Judge0ClusterService {
     try {
       const instance = await this.selectInstance();
       const client = this.clients.get(instance.id);
-      
+
       if (!client) {
         throw new ExternalServiceError('Judge0', 'No client found for selected instance');
       }
@@ -139,11 +141,11 @@ export class Judge0ClusterService {
 
       try {
         const result = await this.executeOnInstance(client, params);
-        
+
         // Record success
         this.stats.successfulRequests++;
         this.stats.totalResponseTime += Date.now() - startTime;
-        
+
         return result;
       } finally {
         // Decrement instance load
@@ -151,11 +153,11 @@ export class Judge0ClusterService {
       }
     } catch (error) {
       this.stats.failedRequests++;
-      
+
       if (error instanceof ExternalServiceError || error instanceof NetworkError) {
         throw error;
       }
-      
+
       throw new ExternalServiceError('Judge0', error.message);
     }
   }
@@ -163,7 +165,10 @@ export class Judge0ClusterService {
   /**
    * Execute code on a specific instance
    */
-  private async executeOnInstance(client: AxiosInstance, params: Judge0ExecutionParams): Promise<Judge0Result> {
+  private async executeOnInstance(
+    client: AxiosInstance,
+    params: Judge0ExecutionParams
+  ): Promise<Judge0Result> {
     const languageId = this.LANGUAGE_MAP[params.language];
     if (!languageId) {
       throw new ExternalServiceError('Judge0', `Unsupported language: ${params.language}`);
@@ -173,7 +178,9 @@ export class Judge0ClusterService {
       language_id: languageId,
       source_code: Buffer.from(params.sourceCode).toString('base64'),
       stdin: params.stdin ? Buffer.from(params.stdin).toString('base64') : undefined,
-      expected_output: params.expectedOutput ? Buffer.from(params.expectedOutput).toString('base64') : undefined,
+      expected_output: params.expectedOutput
+        ? Buffer.from(params.expectedOutput).toString('base64')
+        : undefined,
       cpu_time_limit: params.timeLimit || 2.0,
       memory_limit: (params.memoryLimit || 256) * 1024, // Convert MB to KB
       enable_per_process_and_thread_time_limit: true,
@@ -181,7 +188,10 @@ export class Judge0ClusterService {
     };
 
     // Submit code for execution
-    const submitResponse = await client.post('/submissions?base64_encoded=true&wait=false', submission);
+    const submitResponse = await client.post(
+      '/submissions?base64_encoded=true&wait=false',
+      submission
+    );
     const token = submitResponse.data.token;
 
     // Poll for results
@@ -198,14 +208,16 @@ export class Judge0ClusterService {
         // Decode base64 outputs
         result.stdout = result.stdout ? Buffer.from(result.stdout, 'base64').toString() : null;
         result.stderr = result.stderr ? Buffer.from(result.stderr, 'base64').toString() : null;
-        result.compile_output = result.compile_output ? Buffer.from(result.compile_output, 'base64').toString() : null;
+        result.compile_output = result.compile_output
+          ? Buffer.from(result.compile_output, 'base64').toString()
+          : null;
         result.token = token;
-        
+
         return result;
       }
 
       // Wait before next poll
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       attempts++;
     }
 
@@ -217,16 +229,16 @@ export class Judge0ClusterService {
    */
   private async selectInstance(): Promise<Judge0Instance> {
     const healthyInstances = this.getHealthyInstances();
-    
+
     if (healthyInstances.length === 0) {
       // Try to perform emergency health check
       await this.performHealthCheck();
-      
+
       const retryHealthy = this.getHealthyInstances();
       if (retryHealthy.length === 0) {
         throw new ExternalServiceError('Judge0', 'No healthy instances available');
       }
-      
+
       return this.selectByLoadBalancing(retryHealthy);
     }
 
@@ -255,7 +267,7 @@ export class Judge0ClusterService {
    * Get healthy instances
    */
   private getHealthyInstances(): Judge0Instance[] {
-    return Array.from(this.instances.values()).filter(instance => instance.isHealthy);
+    return Array.from(this.instances.values()).filter((instance) => instance.isHealthy);
   }
 
   /**
@@ -268,7 +280,7 @@ export class Judge0ClusterService {
         if (!client) return;
 
         const response = await client.get('/system_info', { timeout: 5000 });
-        
+
         if (response.status === 200) {
           instance.isHealthy = true;
           instance.lastHealthCheck = new Date();
@@ -277,10 +289,10 @@ export class Judge0ClusterService {
         }
       } catch (error) {
         instance.isHealthy = false;
-        logger.warn('Judge0 instance health check failed', { 
-          instanceId: id, 
-          url: instance.url, 
-          error: error.message 
+        logger.warn('Judge0 instance health check failed', {
+          instanceId: id,
+          url: instance.url,
+          error: error.message
         });
       }
     });
@@ -291,8 +303,8 @@ export class Judge0ClusterService {
     const healthyCount = this.getHealthyInstances().length;
     const totalCount = this.instances.size;
 
-    logger.info('Health check completed', { 
-      healthy: healthyCount, 
+    logger.info('Health check completed', {
+      healthy: healthyCount,
       total: totalCount,
       healthyPercentage: Math.round((healthyCount / totalCount) * 100)
     });
@@ -311,7 +323,7 @@ export class Judge0ClusterService {
    */
   private startHealthChecks(): void {
     const interval = parseInt(process.env.JUDGE0_HEALTH_CHECK_INTERVAL || '30000'); // 30 seconds
-    
+
     this.healthCheckInterval = setInterval(async () => {
       await this.performHealthCheck();
     }, interval);
@@ -335,23 +347,27 @@ export class Judge0ClusterService {
    */
   getClusterStats(): Judge0ClusterStats {
     const healthyInstances = this.getHealthyInstances();
-    const totalLoad = Array.from(this.instances.values())
-      .reduce((sum, instance) => sum + instance.currentLoad, 0);
+    const totalLoad = Array.from(this.instances.values()).reduce(
+      (sum, instance) => sum + instance.currentLoad,
+      0
+    );
 
-    const averageResponseTime = this.stats.totalRequests > 0 
-      ? this.stats.totalResponseTime / this.stats.successfulRequests 
-      : 0;
+    const averageResponseTime =
+      this.stats.totalRequests > 0
+        ? this.stats.totalResponseTime / this.stats.successfulRequests
+        : 0;
 
-    const failureRate = this.stats.totalRequests > 0 
-      ? (this.stats.failedRequests / this.stats.totalRequests) * 100 
-      : 0;
+    const failureRate =
+      this.stats.totalRequests > 0
+        ? (this.stats.failedRequests / this.stats.totalRequests) * 100
+        : 0;
 
     return {
       totalInstances: this.instances.size,
       healthyInstances: healthyInstances.length,
       totalLoad,
       averageResponseTime: Math.round(averageResponseTime),
-      failureRate: Math.round(failureRate * 100) / 100,
+      failureRate: Math.round(failureRate * 100) / 100
     };
   }
 
@@ -359,8 +375,8 @@ export class Judge0ClusterService {
    * Get detailed instance information
    */
   getInstancesInfo(): Array<Judge0Instance & { responseTime?: number }> {
-    return Array.from(this.instances.values()).map(instance => ({
-      ...instance,
+    return Array.from(this.instances.values()).map((instance) => ({
+      ...instance
       // Add any additional computed metrics
     }));
   }
@@ -373,7 +389,7 @@ export class Judge0ClusterService {
       totalRequests: 0,
       successfulRequests: 0,
       failedRequests: 0,
-      totalResponseTime: 0,
+      totalResponseTime: 0
     };
   }
 
@@ -382,19 +398,26 @@ export class Judge0ClusterService {
    */
   mapStatusToVerdict(statusId: number): string {
     switch (statusId) {
-      case 3: return 'accepted';
-      case 4: return 'wrong_answer';
-      case 5: return 'time_limit_exceeded';
-      case 6: return 'compilation_error';
+      case 3:
+        return 'accepted';
+      case 4:
+        return 'wrong_answer';
+      case 5:
+        return 'time_limit_exceeded';
+      case 6:
+        return 'compilation_error';
       case 7:
       case 8:
       case 9:
       case 10:
       case 11:
-      case 12: return 'runtime_error';
+      case 12:
+        return 'runtime_error';
       case 13:
-      case 14: return 'internal_error';
-      default: return 'pending';
+      case 14:
+        return 'internal_error';
+      default:
+        return 'pending';
     }
   }
 

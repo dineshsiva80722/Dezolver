@@ -8,7 +8,7 @@ import {
   OneToMany,
   ManyToMany,
   JoinTable,
-  JoinColumn,
+  JoinColumn
 } from 'typeorm';
 import { User } from './User.entity';
 import { TestCase } from './TestCase.entity';
@@ -16,7 +16,7 @@ import { TestCase } from './TestCase.entity';
 export enum ProblemDifficulty {
   EASY = 'easy',
   MEDIUM = 'medium',
-  HARD = 'hard',
+  HARD = 'hard'
 }
 
 @Entity('problems')
@@ -45,7 +45,7 @@ export class Problem {
   @Column({
     type: 'enum',
     enum: ProblemDifficulty,
-    nullable: true,
+    nullable: true
   })
   difficulty: ProblemDifficulty;
 
@@ -72,7 +72,7 @@ export class Problem {
   updated_at: Date;
 
   // Relations
-  @OneToMany(() => TestCase, testCase => testCase.problem, { cascade: true })
+  @OneToMany(() => TestCase, (testCase) => testCase.problem, { cascade: true })
   test_cases: TestCase[];
 
   // @OneToMany(() => Submission, submission => submission.problem)

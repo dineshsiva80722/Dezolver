@@ -49,7 +49,7 @@ export class AppError extends Error {
     metadata?: Record<string, any>
   ) {
     super(message);
-    
+
     this.name = this.constructor.name;
     this.type = type;
     this.severity = severity;
@@ -57,7 +57,7 @@ export class AppError extends Error {
     this.isOperational = isOperational;
     this.metadata = metadata;
     this.timestamp = new Date();
-    
+
     // Capture stack trace
     Error.captureStackTrace(this, this.constructor);
   }
@@ -86,7 +86,7 @@ export class AppError extends Error {
       userId: this.userId,
       metadata: this.metadata,
       timestamp: this.timestamp.toISOString(),
-      stack: this.stack,
+      stack: this.stack
     };
   }
 }
@@ -123,7 +123,14 @@ export class AuthorizationError extends AppError {
  */
 export class NotFoundError extends AppError {
   constructor(resource: string = 'Resource', metadata?: Record<string, any>) {
-    super(`${resource} not found`, ErrorType.BUSINESS_LOGIC, 404, ErrorSeverity.LOW, true, metadata);
+    super(
+      `${resource} not found`,
+      ErrorType.BUSINESS_LOGIC,
+      404,
+      ErrorSeverity.LOW,
+      true,
+      metadata
+    );
   }
 }
 
@@ -150,7 +157,14 @@ export class RateLimitError extends AppError {
  */
 export class ExternalServiceError extends AppError {
   constructor(service: string, message: string, metadata?: Record<string, any>) {
-    super(`${service} service error: ${message}`, ErrorType.EXTERNAL_SERVICE, 502, ErrorSeverity.HIGH, true, metadata);
+    super(
+      `${service} service error: ${message}`,
+      ErrorType.EXTERNAL_SERVICE,
+      502,
+      ErrorSeverity.HIGH,
+      true,
+      metadata
+    );
   }
 }
 
@@ -159,7 +173,14 @@ export class ExternalServiceError extends AppError {
  */
 export class DatabaseError extends AppError {
   constructor(message: string, metadata?: Record<string, any>) {
-    super(`Database error: ${message}`, ErrorType.DATABASE, 500, ErrorSeverity.HIGH, true, metadata);
+    super(
+      `Database error: ${message}`,
+      ErrorType.DATABASE,
+      500,
+      ErrorSeverity.HIGH,
+      true,
+      metadata
+    );
   }
 }
 
@@ -177,7 +198,14 @@ export class NetworkError extends AppError {
  */
 export class SystemError extends AppError {
   constructor(message: string, metadata?: Record<string, any>) {
-    super(`System error: ${message}`, ErrorType.SYSTEM, 500, ErrorSeverity.CRITICAL, false, metadata);
+    super(
+      `System error: ${message}`,
+      ErrorType.SYSTEM,
+      500,
+      ErrorSeverity.CRITICAL,
+      false,
+      metadata
+    );
   }
 }
 
@@ -207,27 +235,27 @@ export class ErrorLogger {
    */
   static logError(error: Error, context: ErrorContext): void {
     const isAppError = error instanceof AppError;
-    
+
     const errorData = {
       // Error details
       name: error.name,
       message: error.message,
       stack: error.stack,
-      
+
       // App error specific
       ...(isAppError && {
         type: error.type,
         severity: error.severity,
         statusCode: error.statusCode,
-        isOperational: error.isOperational,
+        isOperational: error.isOperational
       }),
-      
+
       // Context
       correlationId: context.correlationId,
       userId: context.userId,
       operation: context.operation,
       component: context.component,
-      
+
       // Request context
       ...(context.request && {
         request: {
@@ -235,20 +263,20 @@ export class ErrorLogger {
           url: context.request.url,
           headers: this.sanitizeHeaders(context.request.headers),
           userAgent: context.request.headers?.['user-agent'],
-          ip: context.request.headers?.['x-forwarded-for'] || context.request.headers?.['x-real-ip'],
-        },
+          ip: context.request.headers?.['x-forwarded-for'] || context.request.headers?.['x-real-ip']
+        }
       }),
-      
+
       // Additional metadata
       metadata: {
         ...context.metadata,
-        ...(isAppError && error.metadata),
+        ...(isAppError && error.metadata)
       },
-      
+
       // Timestamp
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV,
-      version: process.env.APP_VERSION,
+      version: process.env.APP_VERSION
     };
 
     // Log based on severity
@@ -285,8 +313,8 @@ export class ErrorLogger {
         method: req.method,
         url: req.url,
         headers: req.headers,
-        body: req.method !== 'GET' ? req.body : undefined,
-      },
+        body: req.method !== 'GET' ? req.body : undefined
+      }
     };
   }
 
@@ -295,16 +323,16 @@ export class ErrorLogger {
    */
   private static sanitizeHeaders(headers: any): any {
     if (!headers) return {};
-    
+
     const sensitiveHeaders = ['authorization', 'cookie', 'x-api-key', 'x-auth-token', 'password'];
     const sanitized = { ...headers };
-    
+
     for (const header of sensitiveHeaders) {
       if (sanitized[header]) {
         sanitized[header] = '[REDACTED]';
       }
     }
-    
+
     return sanitized;
   }
 }
@@ -340,23 +368,23 @@ export class ErrorFactory {
   }
 
   static rateLimit(limit: number, window: string): RateLimitError {
-    return new RateLimitError(
-      `Rate limit exceeded: ${limit} requests per ${window}`,
-      { limit, window }
-    );
+    return new RateLimitError(`Rate limit exceeded: ${limit} requests per ${window}`, {
+      limit,
+      window
+    });
   }
 
   static externalService(service: string, error: Error, operation?: string): ExternalServiceError {
-    return new ExternalServiceError(service, error.message, { 
+    return new ExternalServiceError(service, error.message, {
       originalError: error.message,
-      operation 
+      operation
     });
   }
 
   static database(operation: string, error: Error): DatabaseError {
     return new DatabaseError(`${operation} failed: ${error.message}`, {
       operation,
-      originalError: error.message,
+      originalError: error.message
     });
   }
 }

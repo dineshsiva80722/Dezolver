@@ -33,14 +33,15 @@ export class DashboardController {
       });
 
       const acceptedSubmissions = await submissionRepository.count({
-        where: { 
+        where: {
           user_id: userId,
           verdict: SubmissionVerdict.ACCEPTED
         }
       });
 
       // Get recent submissions (last 10)
-      const recentSubmissions = await AppDataSource.query(`
+      const recentSubmissions = await AppDataSource.query(
+        `
         SELECT s.id, s.status, s.language, s.submitted_at, s.memory_used, s.time_used,
                p.title as problem_title, p.code as problem_code
         FROM submissions s
@@ -48,7 +49,9 @@ export class DashboardController {
         WHERE s.user_id = $1
         ORDER BY s.submitted_at DESC
         LIMIT 10
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       // Get upcoming contests (next 5)
       const upcomingContests = await contestRepository.find({
@@ -62,19 +65,21 @@ export class DashboardController {
       });
 
       // Get recent contests user participated in
-      const recentContests = await AppDataSource.query(`
+      const recentContests = await AppDataSource.query(
+        `
         SELECT c.id, c.title, c.start_time, c.end_time, c.status
         FROM contests c
         INNER JOIN contest_participants cp ON c.id = cp.contest_id
         WHERE cp.user_id = $1
         ORDER BY c.start_time DESC
         LIMIT 5
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       // Calculate accuracy rate
-      const accuracyRate = totalSubmissions > 0 
-        ? Math.round((acceptedSubmissions / totalSubmissions) * 100) 
-        : 0;
+      const accuracyRate =
+        totalSubmissions > 0 ? Math.round((acceptedSubmissions / totalSubmissions) * 100) : 0;
 
       const dashboardData = {
         // User statistics
@@ -82,12 +87,12 @@ export class DashboardController {
         contestsParticipated: user.contests_participated_count || 0,
         currentRating: user.rating || 1200,
         maxRating: user.max_rating || user.rating || 1200,
-        
+
         // Submission statistics
         totalSubmissions,
         acceptedSubmissions,
         accuracyRate,
-        
+
         // Recent activity
         recentSubmissions: recentSubmissions.map((sub: any) => ({
           id: sub.id,
@@ -99,16 +104,16 @@ export class DashboardController {
           timeUsed: sub.time_used,
           memoryUsed: sub.memory_used
         })),
-        
+
         // Contest information
-        upcomingContests: upcomingContests.map(contest => ({
+        upcomingContests: upcomingContests.map((contest) => ({
           id: contest.id,
           title: contest.title,
           startTime: contest.start_time,
           endTime: contest.end_time,
           status: contest.status
         })),
-        
+
         recentContests: recentContests.map((contest: any) => ({
           id: contest.id,
           title: contest.title,

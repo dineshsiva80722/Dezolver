@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  JoinColumn,
+  JoinColumn
 } from 'typeorm';
 import { User } from './User.entity';
 import { PaymentFrequency } from './Employee.entity';
@@ -14,7 +14,7 @@ export enum PayrollCycleStatus {
   ACTIVE = 'active',
   PROCESSING = 'processing',
   COMPLETED = 'completed',
-  CANCELLED = 'cancelled',
+  CANCELLED = 'cancelled'
 }
 
 @Entity('payroll_cycles')
@@ -27,7 +27,7 @@ export class PayrollCycle {
 
   @Column({
     type: 'enum',
-    enum: PaymentFrequency,
+    enum: PaymentFrequency
   })
   frequency: PaymentFrequency;
 
@@ -46,7 +46,7 @@ export class PayrollCycle {
   @Column({
     type: 'enum',
     enum: PayrollCycleStatus,
-    default: PayrollCycleStatus.ACTIVE,
+    default: PayrollCycleStatus.ACTIVE
   })
   status: PayrollCycleStatus;
 

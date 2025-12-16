@@ -111,10 +111,10 @@ export class SubmissionController {
         if (submission.contest_id) {
           return res.status(403).json({
             success: false,
-            message: 'Cannot view other users\' submissions during contest'
+            message: "Cannot view other users' submissions during contest"
           });
         }
-        
+
         // For practice problems, only show verdict
         const { code, ...publicData } = submission as any;
         return res.json({
@@ -134,17 +134,18 @@ export class SubmissionController {
 
   static async getSubmissions(req: Request, res: Response, next: NextFunction) {
     try {
-      const { 
-        page = 1, 
-        limit = 20, 
+      const {
+        page = 1,
+        limit = 20,
         user_id,
         problem_id,
         contest_id,
         verdict,
-        language 
+        language
       } = req.query;
 
-      const queryBuilder = submissionRepository.createQueryBuilder('submission')
+      const queryBuilder = submissionRepository
+        .createQueryBuilder('submission')
         .leftJoinAndSelect('submission.user', 'user')
         .leftJoinAndSelect('submission.problem', 'problem')
         .select([
@@ -215,7 +216,8 @@ export class SubmissionController {
       const userId = req.user!.userId;
       const { problem_id, verdict, page = 1, limit = 20 } = req.query;
 
-      const queryBuilder = submissionRepository.createQueryBuilder('submission')
+      const queryBuilder = submissionRepository
+        .createQueryBuilder('submission')
         .leftJoinAndSelect('submission.problem', 'problem')
         .where('submission.user_id = :userId', { userId });
 
@@ -374,10 +376,7 @@ export class SubmissionController {
 
       // Check if problem exists (handle both UUID and slug)
       const problem = await problemRepository.findOne({
-        where: [
-          { id: problemId },
-          { slug: problemId }
-        ]
+        where: [{ id: problemId }, { slug: problemId }]
       });
 
       if (!problem) {
@@ -394,7 +393,7 @@ export class SubmissionController {
           return res.status(403).json({
             success: false,
             message: 'You do not have access to this problem'
-          });  
+          });
         }
       }
 
@@ -442,10 +441,7 @@ export class SubmissionController {
 
       // Check if problem exists (handle both UUID and slug)
       const problem = await problemRepository.findOne({
-        where: [
-          { id: problemId },
-          { slug: problemId }
-        ]
+        where: [{ id: problemId }, { slug: problemId }]
       });
 
       if (!problem) {
@@ -455,7 +451,8 @@ export class SubmissionController {
         });
       }
 
-      const queryBuilder = submissionRepository.createQueryBuilder('submission')
+      const queryBuilder = submissionRepository
+        .createQueryBuilder('submission')
         .leftJoinAndSelect('submission.problem', 'problem')
         .where('submission.problem_id = :problemId', { problemId })
         .andWhere('submission.user_id = :userId', { userId });

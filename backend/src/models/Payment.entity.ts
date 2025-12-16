@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  JoinColumn,
+  JoinColumn
 } from 'typeorm';
 import { Organization } from './Organization.entity';
 import { Subscription } from './Subscription.entity';
@@ -16,7 +16,7 @@ export enum PaymentStatus {
   COMPLETED = 'completed',
   FAILED = 'failed',
   REFUNDED = 'refunded',
-  CANCELLED = 'cancelled',
+  CANCELLED = 'cancelled'
 }
 
 export enum PaymentMethod {
@@ -26,7 +26,7 @@ export enum PaymentMethod {
   UPI = 'upi',
   CARD = 'card',
   NETBANKING = 'netbanking',
-  WALLET = 'wallet',
+  WALLET = 'wallet'
 }
 
 @Entity('payments')
@@ -70,7 +70,7 @@ export class Payment {
     type: 'enum',
     enum: PaymentStatus,
     enumName: 'payment_status',
-    default: PaymentStatus.PENDING,
+    default: PaymentStatus.PENDING
   })
   status: PaymentStatus;
 
@@ -78,7 +78,7 @@ export class Payment {
     type: 'enum',
     enum: PaymentMethod,
     enumName: 'payment_method',
-    default: PaymentMethod.RAZORPAY,
+    default: PaymentMethod.RAZORPAY
   })
   payment_method: PaymentMethod;
 

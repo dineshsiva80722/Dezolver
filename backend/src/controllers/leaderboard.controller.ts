@@ -15,16 +15,16 @@ export const getGlobalLeaderboard = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
-    const timeFrame = req.query.timeFrame as string || 'all-time';
-    const category = req.query.category as string || 'rating';
-    const search = req.query.search as string || '';
+    const timeFrame = (req.query.timeFrame as string) || 'all-time';
+    const category = (req.query.category as string) || 'rating';
+    const search = (req.query.search as string) || '';
     const offset = (page - 1) * limit;
 
     let orderBy: string;
     let additionalFields = '';
     let joinClause = '';
     let whereClause = 'WHERE u.is_active = true';
-    
+
     switch (category) {
       case 'problems':
         orderBy = 'us.problems_solved DESC, u.rating DESC';
@@ -109,7 +109,7 @@ export const getGlobalLeaderboard = async (req: Request, res: Response) => {
     const totalPages = Math.ceil(total / limit);
 
     // Add badge/rank information based on rating
-    const usersWithBadges = leaderboardResult.rows.map(user => ({
+    const usersWithBadges = leaderboardResult.rows.map((user) => ({
       ...user,
       badge: getRatingBadge(user.rating),
       achievements: generateAchievements(user)
@@ -349,18 +349,18 @@ function getRatingBadge(rating: number): string {
 
 function generateAchievements(user: any): string[] {
   const achievements: string[] = [];
-  
+
   if (user.problems_solved >= 1000) achievements.push('Problem Master');
   else if (user.problems_solved >= 500) achievements.push('Problem Solver');
   else if (user.problems_solved >= 100) achievements.push('Getting Started');
-  
+
   if (user.contests_participated >= 50) achievements.push('Contest Veteran');
   else if (user.contests_participated >= 10) achievements.push('Contest Regular');
-  
+
   if (user.streak_days >= 30) achievements.push('Consistency King');
   else if (user.streak_days >= 7) achievements.push('Week Warrior');
-  
+
   if (user.rating >= 2400) achievements.push('Elite Coder');
-  
+
   return achievements;
 }

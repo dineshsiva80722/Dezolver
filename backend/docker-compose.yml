@@ -13,9 +13,9 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - DB_NAME=techfolks_db
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:33545
       - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_PORT=33545
       - JUDGE0_API_URL=http://judge0:2358
     depends_on:
       postgres:
@@ -46,9 +46,10 @@ services:
     image: redis:7-alpine
     container_name: techfolks_redis
     ports:
-      - "6379:6379"
+      - "33545:33545"
     volumes:
       - redis_data:/data
+    command: redis-server --appendonly yes --port 33545
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -96,7 +97,7 @@ services:
       - "2358:2358"
     environment:
       - RAILS_ENV=development
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:33545
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_DB=judge0

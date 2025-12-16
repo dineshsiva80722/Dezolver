@@ -9,7 +9,7 @@ import {
   ManyToMany,
   ManyToOne,
   JoinTable,
-  JoinColumn,
+  JoinColumn
 } from 'typeorm';
 import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 import { Submission } from './Submission.entity';
@@ -26,13 +26,13 @@ export enum UserRole {
   MODERATOR = 'moderator',
   ORGANIZATION_MANAGER = 'organization_manager',
   HR_MANAGER = 'hr_manager',
-  PLATFORM_ADMIN = 'platform_admin',
+  PLATFORM_ADMIN = 'platform_admin'
 }
 
 export enum UserTier {
   USER = 'user',
   MANAGER = 'manager',
-  PLATFORM = 'platform',
+  PLATFORM = 'platform'
 }
 
 @Entity('users')
@@ -88,14 +88,14 @@ export class User {
   @Column({
     type: 'enum',
     enum: UserRole,
-    default: UserRole.USER,
+    default: UserRole.USER
   })
   role: UserRole;
 
   @Column({
     type: 'enum',
     enum: UserTier,
-    default: UserTier.USER,
+    default: UserTier.USER
   })
   tier: UserTier;
 
@@ -147,18 +147,25 @@ export class User {
   @Column({ name: 'managed_by', type: 'uuid', nullable: true, select: false })
   managed_by: string;
 
-  @Column({ name: 'added_by', type: 'varchar', length: 20, nullable: true, default: 'self', select: false })
+  @Column({
+    name: 'added_by',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+    default: 'self',
+    select: false
+  })
   added_by: string;
 
   // Relations
-  @ManyToOne(() => User, user => user.managedUsers, { nullable: true })
+  @ManyToOne(() => User, (user) => user.managedUsers, { nullable: true })
   @JoinColumn({ name: 'managed_by' })
   manager: User;
 
-  @OneToMany(() => User, user => user.manager)
+  @OneToMany(() => User, (user) => user.manager)
   managedUsers: User[];
 
-  @OneToMany(() => Submission, submission => submission.user)
+  @OneToMany(() => Submission, (submission) => submission.user)
   submissions: Submission[];
 
   @ManyToMany(() => Contest)
@@ -169,13 +176,13 @@ export class User {
   })
   contests: Contest[];
 
-  @OneToMany(() => AssessmentAttempt, attempt => attempt.user)
+  @OneToMany(() => AssessmentAttempt, (attempt) => attempt.user)
   assessmentAttempts: AssessmentAttempt[];
 
   @Column({ name: 'organization_id', type: 'uuid', nullable: true })
   organization_id: string | null;
 
-  @ManyToOne(() => Organization, org => org.users, { nullable: true })
+  @ManyToOne(() => Organization, (org) => org.users, { nullable: true })
   @JoinColumn({ name: 'organization_id' })
   organization: Organization | null;
 }

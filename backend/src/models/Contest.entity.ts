@@ -8,11 +8,10 @@ import {
   OneToMany,
   ManyToMany,
   JoinTable,
-  JoinColumn,
+  JoinColumn
 } from 'typeorm';
 import { User } from './User.entity';
 import { ContestType, ContestStatus } from '../types/enums';
-
 
 @Entity('contests')
 export class Contest {
@@ -31,7 +30,7 @@ export class Contest {
   @Column({
     name: 'contest_type',
     type: 'enum',
-    enum: ContestType,
+    enum: ContestType
   })
   contest_type: ContestType;
 

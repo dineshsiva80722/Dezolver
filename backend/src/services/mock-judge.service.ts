@@ -24,20 +24,20 @@ export class MockJudgeService {
     memoryLimit?: number;
   }): Promise<MockExecutionResult> {
     logger.info('Using mock judge service for code execution');
-    
+
     // Simulate processing delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 1000));
 
     // Basic pattern matching for common solutions
     const code = params.sourceCode.toLowerCase();
     const input = params.stdin || '';
-    
+
     // Check for obvious syntax errors
     if (code.includes('import') && params.language === 'c') {
       return {
         stdout: null,
         stderr: "error: unknown type name 'import'",
-        compile_output: "Compilation error: invalid syntax",
+        compile_output: 'Compilation error: invalid syntax',
         status: { id: 6, description: 'Compilation Error' },
         time: '0',
         memory: 0
@@ -62,7 +62,7 @@ export class MockJudgeService {
     if (params.expectedOutput) {
       // Random chance of success for demonstration
       const isCorrect = Math.random() > 0.3;
-      
+
       if (isCorrect) {
         return {
           stdout: params.expectedOutput,
@@ -95,7 +95,7 @@ export class MockJudgeService {
             status: { id: 5, description: 'Time Limit Exceeded' }
           }
         ];
-        
+
         const error = errorTypes[Math.floor(Math.random() * errorTypes.length)];
         return {
           ...error,
@@ -127,7 +127,7 @@ export class MockJudgeService {
     }
   ): Promise<MockExecutionResult[]> {
     const results: MockExecutionResult[] = [];
-    
+
     for (const testCase of testCases) {
       const result = await this.executeCode({
         ...params,
@@ -135,20 +135,20 @@ export class MockJudgeService {
         expectedOutput: testCase.expectedOutput
       });
       results.push(result);
-      
+
       // Stop on first non-accepted result
       if (result.status.id !== 3) {
         break;
       }
     }
-    
+
     return results;
   }
 
   static mapStatusToVerdict(statusId: number): string {
     const statusMap: Record<number, string> = {
       1: 'pending',
-      2: 'processing', 
+      2: 'processing',
       3: 'accepted',
       4: 'wrong_answer',
       5: 'time_limit_exceeded',
@@ -162,7 +162,7 @@ export class MockJudgeService {
       13: 'internal_error',
       14: 'runtime_error'
     };
-    
+
     return statusMap[statusId] || 'internal_error';
   }
 }

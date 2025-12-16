@@ -26,7 +26,7 @@ export class CompanyBankController {
         company_registration_number,
         additional_details
       } = req.body;
-      
+
       const currentUser = (req as any).user;
 
       if (currentUser.role !== UserRole.ADMIN) {
@@ -40,7 +40,8 @@ export class CompanyBankController {
       if (!company_name || !account_holder_name || !account_number || !ifsc_code || !bank_name) {
         res.status(400).json({
           success: false,
-          message: 'Missing required fields: company_name, account_holder_name, account_number, ifsc_code, bank_name'
+          message:
+            'Missing required fields: company_name, account_holder_name, account_number, ifsc_code, bank_name'
         });
         return;
       }
@@ -98,10 +99,8 @@ export class CompanyBankController {
   getCompanyBankDetails = async (req: Request, res: Response): Promise<void> => {
     try {
       const { include_inactive } = req.query;
-      
-      const bankDetails = await this.bankService.getCompanyBankDetails(
-        include_inactive === 'true'
-      );
+
+      const bankDetails = await this.bankService.getCompanyBankDetails(include_inactive === 'true');
 
       res.status(200).json({
         success: true,

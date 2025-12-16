@@ -7,13 +7,20 @@ import { body, param, query } from 'express-validator';
 const router = Router();
 
 // Get all teams (public)
-router.get('/',
+router.get(
+  '/',
   [
     query('search').optional().isString().trim(),
     query('is_public').optional().isBoolean(),
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-    query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
-    query('sort').optional().isIn(['created_at', 'name', 'member_count']).withMessage('Invalid sort field'),
+    query('limit')
+      .optional()
+      .isInt({ min: 1, max: 100 })
+      .withMessage('Limit must be between 1 and 100'),
+    query('sort')
+      .optional()
+      .isIn(['created_at', 'name', 'member_count'])
+      .withMessage('Invalid sort field'),
     query('order').optional().isIn(['ASC', 'DESC']).withMessage('Invalid sort order')
   ],
   validate,
@@ -21,68 +28,81 @@ router.get('/',
 );
 
 // Get team details (public)
-router.get('/:id',
-  [
-    param('id').isInt().withMessage('Invalid team ID')
-  ],
+router.get(
+  '/:id',
+  [param('id').isInt().withMessage('Invalid team ID')],
   validate,
   TeamController.getTeam
 );
 
 // Create team (requires authentication)
-router.post('/',
+router.post(
+  '/',
   authenticate,
   [
-    body('name').notEmpty().isString().trim().isLength({ min: 3, max: 100 })
+    body('name')
+      .notEmpty()
+      .isString()
+      .trim()
+      .isLength({ min: 3, max: 100 })
       .withMessage('Team name must be between 3 and 100 characters'),
-    body('description').optional().isString().trim().isLength({ max: 500 })
+    body('description')
+      .optional()
+      .isString()
+      .trim()
+      .isLength({ max: 500 })
       .withMessage('Description must not exceed 500 characters'),
-    body('is_public').optional().isBoolean()
-      .withMessage('is_public must be a boolean value')
+    body('is_public').optional().isBoolean().withMessage('is_public must be a boolean value')
   ],
   validate,
   TeamController.createTeam
 );
 
 // Update team (requires authentication and team leader role)
-router.put('/:id',
+router.put(
+  '/:id',
   authenticate,
   [
     param('id').isInt().withMessage('Invalid team ID'),
-    body('name').notEmpty().isString().trim().isLength({ min: 3, max: 100 })
+    body('name')
+      .notEmpty()
+      .isString()
+      .trim()
+      .isLength({ min: 3, max: 100 })
       .withMessage('Team name must be between 3 and 100 characters'),
-    body('description').optional().isString().trim().isLength({ max: 500 })
+    body('description')
+      .optional()
+      .isString()
+      .trim()
+      .isLength({ max: 500 })
       .withMessage('Description must not exceed 500 characters'),
-    body('is_public').optional().isBoolean()
-      .withMessage('is_public must be a boolean value')
+    body('is_public').optional().isBoolean().withMessage('is_public must be a boolean value')
   ],
   validate,
   TeamController.updateTeam
 );
 
 // Join team with invite code (requires authentication)
-router.post('/join',
+router.post(
+  '/join',
   authenticate,
-  [
-    body('invite_code').notEmpty().isString().trim()
-      .withMessage('Invite code is required')
-  ],
+  [body('invite_code').notEmpty().isString().trim().withMessage('Invite code is required')],
   validate,
   TeamController.joinTeam
 );
 
 // Leave team (requires authentication)
-router.post('/:id/leave',
+router.post(
+  '/:id/leave',
   authenticate,
-  [
-    param('id').isInt().withMessage('Invalid team ID')
-  ],
+  [param('id').isInt().withMessage('Invalid team ID')],
   validate,
   TeamController.leaveTeam
 );
 
 // Update member role (requires authentication and team leader role)
-router.put('/:id/members/:user_id/role',
+router.put(
+  '/:id/members/:user_id/role',
   authenticate,
   [
     param('id').isInt().withMessage('Invalid team ID'),
@@ -94,7 +114,8 @@ router.put('/:id/members/:user_id/role',
 );
 
 // Register team for contest (requires authentication)
-router.post('/contest/register',
+router.post(
+  '/contest/register',
   authenticate,
   [
     body('team_id').isInt().withMessage('Team ID is required'),
@@ -105,12 +126,16 @@ router.post('/contest/register',
 );
 
 // Get team contests
-router.get('/:team_id/contests',
+router.get(
+  '/:team_id/contests',
   [
     param('team_id').isInt().withMessage('Invalid team ID'),
     query('status').optional().isIn(['upcoming', 'ongoing', 'past']).withMessage('Invalid status'),
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-    query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50')
+    query('limit')
+      .optional()
+      .isInt({ min: 1, max: 50 })
+      .withMessage('Limit must be between 1 and 50')
   ],
   validate,
   TeamController.getTeamContests

@@ -47,22 +47,20 @@ export class CompanyBankService {
   async createCompanyBankDetails(data: CreateCompanyBankDetailsDTO): Promise<CompanyBankDetails> {
     // If this is being set as primary, unset other primary accounts
     if (data.additional_details?.is_primary) {
-      await this.bankRepository.update(
-        { is_primary: true },
-        { is_primary: false }
-      );
+      await this.bankRepository.update({ is_primary: true }, { is_primary: false });
     }
 
     const bankDetails = this.bankRepository.create({
       id: uuidv4(),
-      ...data,
+      ...data
     });
 
     return await this.bankRepository.save(bankDetails);
   }
 
   async getCompanyBankDetails(includeInactive: boolean = false): Promise<CompanyBankDetails[]> {
-    const query = this.bankRepository.createQueryBuilder('bank')
+    const query = this.bankRepository
+      .createQueryBuilder('bank')
       .leftJoinAndSelect('bank.created_by', 'created_by');
 
     if (!includeInactive) {
@@ -78,18 +76,21 @@ export class CompanyBankService {
   async getPrimaryCompanyBankDetails(): Promise<CompanyBankDetails | null> {
     return await this.bankRepository.findOne({
       where: { is_primary: true, is_active: true },
-      relations: ['created_by'],
+      relations: ['created_by']
     });
   }
 
   async getCompanyBankDetailsById(id: string): Promise<CompanyBankDetails | null> {
     return await this.bankRepository.findOne({
       where: { id },
-      relations: ['created_by'],
+      relations: ['created_by']
     });
   }
 
-  async updateCompanyBankDetails(id: string, data: UpdateCompanyBankDetailsDTO): Promise<CompanyBankDetails | null> {
+  async updateCompanyBankDetails(
+    id: string,
+    data: UpdateCompanyBankDetailsDTO
+  ): Promise<CompanyBankDetails | null> {
     const bankDetails = await this.getCompanyBankDetailsById(id);
     if (!bankDetails) {
       return null;
@@ -97,10 +98,7 @@ export class CompanyBankService {
 
     // If setting as primary, unset other primary accounts
     if (data.additional_details?.is_primary) {
-      await this.bankRepository.update(
-        { is_primary: true },
-        { is_primary: false }
-      );
+      await this.bankRepository.update({ is_primary: true }, { is_primary: false });
     }
 
     Object.assign(bankDetails, data);
@@ -119,14 +117,16 @@ export class CompanyBankService {
 
     try {
       // Unset all primary accounts
-      await queryRunner.manager.update(CompanyBankDetails, 
-        { is_primary: true }, 
+      await queryRunner.manager.update(
+        CompanyBankDetails,
+        { is_primary: true },
         { is_primary: false }
       );
 
       // Set this account as primary
-      await queryRunner.manager.update(CompanyBankDetails, 
-        { id }, 
+      await queryRunner.manager.update(
+        CompanyBankDetails,
+        { id },
         { is_primary: true, is_active: true }
       );
 
@@ -183,7 +183,10 @@ export class CompanyBankService {
     }
 
     // GST validation if provided
-    if (bankDetails.gst_number && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(bankDetails.gst_number)) {
+    if (
+      bankDetails.gst_number &&
+      !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(bankDetails.gst_number)
+    ) {
       errors.push('Invalid GST number format');
     }
 

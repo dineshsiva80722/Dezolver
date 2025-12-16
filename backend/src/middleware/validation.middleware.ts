@@ -27,18 +27,13 @@ export const contestValidationRules = {
     body('contest_type')
       .isIn(['ACM_ICPC', 'IOI', 'AtCoder', 'CodeForces'])
       .withMessage('Invalid contest type'),
-    body('start_time')
-      .isISO8601()
-      .withMessage('Start time must be a valid date'),
+    body('start_time').isISO8601().withMessage('Start time must be a valid date'),
     body('end_time')
       .isISO8601()
       .withMessage('End time must be a valid date')
       .custom((value, { req }) => new Date(value) > new Date(req.body.start_time))
       .withMessage('End time must be after start time'),
-    body('is_public')
-      .optional()
-      .isBoolean()
-      .withMessage('is_public must be a boolean'),
+    body('is_public').optional().isBoolean().withMessage('is_public must be a boolean'),
     body('registration_open')
       .optional()
       .isBoolean()
@@ -66,18 +61,9 @@ export const contestValidationRules = {
       .optional()
       .isIn(['ACM_ICPC', 'IOI', 'AtCoder', 'CodeForces'])
       .withMessage('Invalid contest type'),
-    body('start_time')
-      .optional()
-      .isISO8601()
-      .withMessage('Start time must be a valid date'),
-    body('end_time')
-      .optional()
-      .isISO8601()
-      .withMessage('End time must be a valid date'),
-    body('is_public')
-      .optional()
-      .isBoolean()
-      .withMessage('is_public must be a boolean'),
+    body('start_time').optional().isISO8601().withMessage('Start time must be a valid date'),
+    body('end_time').optional().isISO8601().withMessage('End time must be a valid date'),
+    body('is_public').optional().isBoolean().withMessage('is_public must be a boolean'),
     body('registration_open')
       .optional()
       .isBoolean()
@@ -87,9 +73,7 @@ export const contestValidationRules = {
 
 export const submissionValidationRules = {
   create: [
-    body('problem_id')
-      .isUUID()
-      .withMessage('Problem ID must be a valid UUID'),
+    body('problem_id').isUUID().withMessage('Problem ID must be a valid UUID'),
     body('language')
       .isIn(['c', 'cpp', 'java', 'python', 'javascript', 'go', 'rust', 'csharp'])
       .withMessage('Invalid programming language'),
@@ -97,10 +81,7 @@ export const submissionValidationRules = {
       .trim()
       .isLength({ min: 1, max: 100000 })
       .withMessage('Source code must be between 1 and 100000 characters'),
-    body('contest_id')
-      .optional()
-      .isInt()
-      .withMessage('Contest ID must be a valid integer')
+    body('contest_id').optional().isInt().withMessage('Contest ID must be a valid integer')
   ],
 
   submit: [
@@ -148,10 +129,7 @@ export const problemValidationRules = {
       .trim()
       .isLength({ min: 1 })
       .withMessage('Output format cannot be empty'),
-    body('constraints')
-      .trim()
-      .notEmpty()
-      .withMessage('Constraints are required'),
+    body('constraints').trim().notEmpty().withMessage('Constraints are required'),
     body('difficulty')
       .isIn(['easy', 'medium', 'hard'])
       .withMessage('Difficulty must be easy, medium, or hard'),
@@ -163,10 +141,7 @@ export const problemValidationRules = {
       .optional()
       .isInt({ min: 16, max: 1024 })
       .withMessage('Memory limit must be between 16MB and 1024MB'),
-    body('is_public')
-      .optional()
-      .isBoolean()
-      .withMessage('is_public must be a boolean')
+    body('is_public').optional().isBoolean().withMessage('is_public must be a boolean')
   ],
 
   update: [
@@ -190,11 +165,7 @@ export const problemValidationRules = {
       .trim()
       .isLength({ min: 1 })
       .withMessage('Output format cannot be empty'),
-    body('constraints')
-      .optional()
-      .trim()
-      .notEmpty()
-      .withMessage('Constraints cannot be empty'),
+    body('constraints').optional().trim().notEmpty().withMessage('Constraints cannot be empty'),
     body('difficulty')
       .optional()
       .isIn(['easy', 'medium', 'hard'])
@@ -207,10 +178,7 @@ export const problemValidationRules = {
       .optional()
       .isInt({ min: 16, max: 1024 })
       .withMessage('Memory limit must be between 16MB and 1024MB'),
-    body('is_public')
-      .optional()
-      .isBoolean()
-      .withMessage('is_public must be a boolean')
+    body('is_public').optional().isBoolean().withMessage('is_public must be a boolean')
   ]
 };
 
@@ -222,16 +190,14 @@ export const authValidationRules = {
       .withMessage('Username must be between 3 and 30 characters')
       .matches(/^[a-zA-Z0-9_]+$/)
       .withMessage('Username can only contain letters, numbers and underscore'),
-    body('email')
-      .trim()
-      .isEmail()
-      .normalizeEmail()
-      .withMessage('Invalid email address'),
+    body('email').trim().isEmail().normalizeEmail().withMessage('Invalid email address'),
     body('password')
       .isLength({ min: 8 })
       .withMessage('Password must be at least 8 characters long')
       .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-      .withMessage('Password must contain at least one uppercase letter, one lowercase letter and one number'),
+      .withMessage(
+        'Password must contain at least one uppercase letter, one lowercase letter and one number'
+      ),
     body('fullName')
       .trim()
       .isLength({ min: 2, max: 100 })
@@ -244,43 +210,34 @@ export const authValidationRules = {
   ],
 
   login: [
-    body('username')
-      .trim()
-      .notEmpty()
-      .withMessage('Username or email is required'),
-    body('password')
-      .notEmpty()
-      .withMessage('Password is required')
+    body('username').trim().notEmpty().withMessage('Username or email is required'),
+    body('password').notEmpty().withMessage('Password is required')
   ],
 
   forgotPassword: [
-    body('email')
-      .trim()
-      .isEmail()
-      .normalizeEmail()
-      .withMessage('Invalid email address')
+    body('email').trim().isEmail().normalizeEmail().withMessage('Invalid email address')
   ],
 
   resetPassword: [
-    body('token')
-      .notEmpty()
-      .withMessage('Reset token is required'),
+    body('token').notEmpty().withMessage('Reset token is required'),
     body('newPassword')
       .isLength({ min: 8 })
       .withMessage('Password must be at least 8 characters long')
       .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-      .withMessage('Password must contain at least one uppercase letter, one lowercase letter and one number')
+      .withMessage(
+        'Password must contain at least one uppercase letter, one lowercase letter and one number'
+      )
   ],
 
   changePassword: [
-    body('currentPassword')
-      .notEmpty()
-      .withMessage('Current password is required'),
+    body('currentPassword').notEmpty().withMessage('Current password is required'),
     body('newPassword')
       .isLength({ min: 8 })
       .withMessage('Password must be at least 8 characters long')
       .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-      .withMessage('Password must contain at least one uppercase letter, one lowercase letter and one number')
+      .withMessage(
+        'Password must contain at least one uppercase letter, one lowercase letter and one number'
+      )
       .custom((value, { req }) => value !== req.body.currentPassword)
       .withMessage('New password must be different from current password')
   ],
@@ -311,15 +268,7 @@ export const authValidationRules = {
       .trim()
       .matches(/^[a-zA-Z0-9-]+$/)
       .withMessage('Invalid GitHub username'),
-    body('linkedin_url')
-      .optional()
-      .trim()
-      .isURL()
-      .withMessage('Invalid LinkedIn URL'),
-    body('website_url')
-      .optional()
-      .trim()
-      .isURL()
-      .withMessage('Invalid website URL')
+    body('linkedin_url').optional().trim().isURL().withMessage('Invalid LinkedIn URL'),
+    body('website_url').optional().trim().isURL().withMessage('Invalid website URL')
   ]
 };
