@@ -75,22 +75,25 @@
 # ======================
 # Build Stage
 # ======================
+
+# ======================
+# Build Stage
+# ======================
 FROM node:18-alpine AS builder
 
-# Native deps for build (bcrypt, sharp, etc.)
 RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
-# Install deps
-COPY package*.json ./
+# Copy package files
+COPY backend/package*.json ./
 RUN npm ci
 
-# Copy source
-COPY tsconfig.json ./
-COPY src ./src
+# Copy tsconfig and source
+COPY backend/tsconfig.json ./
+COPY backend/src ./src
 
-# Build TypeScript → dist/
+# Build TypeScript
 RUN npm run build
 
 
@@ -101,21 +104,19 @@ FROM node:18-alpine
 
 RUN apk add --no-cache dumb-init curl
 
-# Create non-root user
 RUN addgroup -S nodejs && adduser -S nodejs -G nodejs
 
 WORKDIR /app
 
-# Install prod deps only
-COPY package*.json ./
+# Install prod deps
+COPY backend/package*.json ./
 RUN npm ci --only=production && npm cache clean --force
 
 # Copy compiled output
 COPY --from=builder /app/dist ./dist
 
-# Create runtime folders
-RUN mkdir -p logs uploads tmp && \
-    chown -R nodejs:nodejs /app
+# Runtime dirs
+RUN mkdir -p logs uploads tmp && chown -R nodejs:nodejs /app
 
 USER nodejs
 
@@ -129,5 +130,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
 
 ENTRYPOINT ["dumb-init", "--"]
 
-# ✅ CONFIRMED ENTRY FILE
 CMD ["node", "dist/server.js"]
