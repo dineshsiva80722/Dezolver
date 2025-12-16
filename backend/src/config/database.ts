@@ -98,7 +98,7 @@ export const AppDataSource = new DataSource({
       type: 'redis',
       options: {
         host: url.hostname,
-        port: parseInt(url.port || '6379'),
+        port: parseInt(url.port || '33545'),
         password: url.password || undefined,
         db: parseInt(process.env.REDIS_CACHE_DB || '1'),
       },
