@@ -56,24 +56,24 @@ const ProfilePage = () => {
       
       // Calculate solved by difficulty (mock data for now)
       const solvedByDifficulty = {
-        easy: Math.floor((response.data.problems_solved || 0) * 0.5),
-        medium: Math.floor((response.data.problems_solved || 0) * 0.35),
-        hard: Math.floor((response.data.problems_solved || 0) * 0.15),
+        easy: Math.floor((response.problems_solved || 0) * 0.5),
+        medium: Math.floor((response.problems_solved || 0) * 0.35),
+        hard: Math.floor((response.problems_solved || 0) * 0.15),
       }
       
       const userStats: UserStats = {
-        problemsSolved: response.data.problems_solved || 0,
-        contestsParticipated: response.data.contests_participated_count || 0,
-        currentRating: response.data.rating || 1200,
-        maxRating: response.data.max_rating || response.data.rating || 1200,
-        totalSubmissions: response.data.total_submissions || 0,
-        acceptedSubmissions: response.data.accepted_submissions || 0,
-        accuracyRate: response.data.total_submissions > 0
-          ? Math.round((response.data.accepted_submissions / response.data.total_submissions) * 100)
+        problemsSolved: response.problems_solved || 0,
+        contestsParticipated: response.contests_participated_count || 0,
+        currentRating: response.rating || 1200,
+        maxRating: response.max_rating || response.rating || 1200,
+        totalSubmissions: response.total_submissions || 0,
+        acceptedSubmissions: response.accepted_submissions || 0,
+        accuracyRate: response.total_submissions > 0
+          ? Math.round((response.accepted_submissions / response.total_submissions) * 100)
           : 0,
-        recentSubmissions: response.data.recent_submissions || [],
+        recentSubmissions: response.recent_submissions || [],
         solvedByDifficulty,
-        assessment_stats: response.data.assessment_stats
+        assessment_stats: response.assessment_stats
       }
       
       setStats(userStats)

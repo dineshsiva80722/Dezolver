@@ -225,10 +225,10 @@ const WorkspacePage: React.FC = () => {
       });
 
       if (response.success) {
-        setOutput(response.output || response.stdout || 'Code executed successfully');
+        setOutput(response.data?.output || response.data?.stdout || 'Code executed successfully');
         toast.success('Code executed successfully!');
       } else {
-        setOutput(response.error || response.stderr || 'Execution failed');
+        setOutput(response.data?.error || response.data?.stderr || 'Execution failed');
         toast.error('Code execution failed');
       }
     } catch (error: any) {

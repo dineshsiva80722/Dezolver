@@ -4,7 +4,6 @@ import { useEmployeeStore } from '@store/employeeStore'
 import { useCertificatesStore } from '@store/certificatesStore'
 import { usePayrollStore } from '@store/payrollStore'
 import DashboardCard from '@components/common/DashboardCard'
-import LoadingSpinner from '@components/common/LoadingSpinner'
 import { Navigate } from 'react-router-dom'
 
 const EliteAdminDashboard = () => {
@@ -22,7 +21,7 @@ const EliteAdminDashboard = () => {
     systemHealth: 98
   })
 
-  const [recentActivity, setRecentActivity] = useState([
+  const [recentActivity] = useState([
     { type: 'certificate', message: 'Certificate generated for Full Stack Development', time: '2 hours ago', icon: '🎓' },
     { type: 'payroll', message: 'Monthly payroll processed for 15 employees', time: '1 day ago', icon: '💰' },
     { type: 'employee', message: 'New employee added: John Doe', time: '2 days ago', icon: '👤' },
@@ -200,7 +199,7 @@ const EliteAdminDashboard = () => {
           title="Subscription & Billing"
           subtitle="Plan Management & Payments"
           icon="💳"
-          gradient="pink"
+          gradient="orange"
           href="/subscription"
         >
           <div className="space-y-2">

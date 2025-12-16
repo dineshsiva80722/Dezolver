@@ -87,10 +87,9 @@ const RegisterPage = () => {
         phoneNumber: formData.phoneNumber || undefined
       })
 
-      // The response is already the data object from axios interceptor
-      if (response?.data?.user && response?.data?.token) {
-        const refreshToken = response?.data?.refreshToken
-        registerUser(response.data.user, response.data.token, refreshToken)
+      if (response?.user && response?.token) {
+        const refreshToken = response?.refreshToken
+        registerUser(response.user, response.token, refreshToken)
         toast.success('Registration successful! Please check your email to verify your account.')
         navigate('/profile')
       } else {

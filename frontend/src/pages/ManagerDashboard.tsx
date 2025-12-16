@@ -14,7 +14,7 @@ const ManagerDashboard = () => {
   } = useOrganizationStore()
 
   useEffect(() => {
-    if (user?.tier === 'manager' || user?.role === 'organization_manager' || user?.role === 'admin') {
+    if (user?.tier === 'manager' || user?.role === 'manager' || user?.role === 'admin') {
       fetchMyOrganization()
       fetchUserLimits()
     }

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { useAuthStore } from '@store/authStore'
 import { useGroupsStore } from '@store/groupsStore'
 import { useContestsStore } from '@store/contestsStore'
 import toast from 'react-hot-toast'
@@ -20,7 +19,6 @@ interface GroupContest {
 const GroupContestsPage = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { user } = useAuthStore()
   const { getGroup } = useGroupsStore()
   const { getContestsByGroup } = useContestsStore()
   
@@ -74,9 +72,9 @@ const GroupContestsPage = () => {
         ]
         
         // Combine real and mock contests
-        const allContests = [...groupContests, ...mockContests].map(c => ({
+        const allContests = [...groupContests, ...mockContests].map((c: any) => ({
           ...c,
-          problems_count: c.problems?.length || c.problems_count || 0
+          problems_count: Array.isArray(c.problems) ? c.problems.length : (c.problems_count || 0)
         }))
         
         setContests(allContests)

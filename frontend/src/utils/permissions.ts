@@ -8,7 +8,7 @@ interface User {
   username: string
   email: string
   full_name?: string
-  role: 'user' | 'admin' | 'hr_manager' | 'manager' | 'super_admin'
+  role: 'user' | 'admin' | 'hr_manager' | 'manager' | 'super_admin' | 'problem_setter' | 'moderator'
   tier?: 'platform' | 'manager' | 'hr_manager' | 'employee' | 'user'
   organization_id?: string
 }

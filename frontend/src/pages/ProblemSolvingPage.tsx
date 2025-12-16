@@ -334,7 +334,7 @@ solve();`
         } else if (newSubmission.status === 'compilation_error') {
           toast.error('Compilation error. Check your code.')
         } else {
-          toast.info('Submission received. Check results in submissions tab.')
+          toast('Submission received. Check results in submissions tab.')
         }
         
         setActiveTab('submissions')
@@ -363,7 +363,7 @@ solve();`
       }
       
       setSubmissions([mockSubmission, ...submissions])
-      toast.info('Submission created (demo mode)')
+      toast('Submission created (demo mode)')
       setActiveTab('submissions')
     } finally {
       setIsSubmitting(false)

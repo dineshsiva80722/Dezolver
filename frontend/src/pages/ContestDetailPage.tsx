@@ -17,7 +17,7 @@ interface ContestProblem {
 const ContestDetailPage = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { user, isAuthenticated } = useAuthStore()
+  const { isAuthenticated } = useAuthStore()
   const { getContest, updateContest } = useContestsStore()
   const { getProblemByCode } = useProblemsStore()
   const { getGroup } = useGroupsStore()
@@ -222,7 +222,7 @@ const ContestDetailPage = () => {
   // Check if user is the owner of any of the contest's groups
   const isGroupOwner = () => {
     if (!contest.group_ids || contest.group_ids.length === 0) return false
-    return contest.group_ids.some(groupId => {
+    return contest.group_ids.some((groupId: number) => {
       const group = getGroup(groupId)
       return group && group.is_owner
     })
@@ -298,7 +298,7 @@ const ContestDetailPage = () => {
             {contest.group_ids && contest.group_ids.length > 0 && (
               <div className="mt-2">
                 <span className="text-sm text-muted-foreground">Groups: </span>
-                {contest.group_ids.map((groupId, index) => {
+                {contest.group_ids.map((groupId: number, index: number) => {
                   const group = getGroup(groupId)
                   return group ? (
                     <Link

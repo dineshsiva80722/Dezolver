@@ -27,7 +27,7 @@ const GroupChat = ({ groupId, groupName, canChat }: GroupChatProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const [replyTo, setReplyTo] = useState<any>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const typingTimeoutRef = useRef<NodeJS.Timeout>()
+  const typingTimeoutRef = useRef<number | undefined>(undefined)
   
   const messages = getMessages(groupId)
   const groupActiveUsers = activeUsers[groupId] || []

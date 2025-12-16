@@ -27,12 +27,11 @@ const LoginPage = () => {
     try {
       const response = await authAPI.login(data)
 
-      // The response is already the data object from axios interceptor
-      if (response?.data?.user && response?.data?.token) {
-        const refreshToken = response?.data?.refreshToken
-        login(response.data.user, response.data.token, refreshToken)
+      if (response?.user && response?.token) {
+        const refreshToken = response?.refreshToken
+        login(response.user, response.token, refreshToken)
         toast.success('Login successful!')
-        const role = response.data.user.role
+        const role = response.user.role
         if (role === 'super_admin') {
           navigate('/super-admin', { replace: true }) 
         } else if (role === 'admin') {

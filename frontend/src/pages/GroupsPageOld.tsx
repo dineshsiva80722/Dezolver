@@ -22,15 +22,6 @@ interface Group {
   badges?: string[]
 }
 
-interface GroupMember {
-  id: number
-  username: string
-  full_name: string
-  role: 'owner' | 'admin' | 'member'
-  joined_at: string
-  rating: number
-  problems_solved: number
-}
 
 const GroupsPage = () => {
   const [groups, setGroups] = useState<Group[]>([])
@@ -125,7 +116,7 @@ const GroupsPage = () => {
           description: 'Personal group for organizing practice contests, curating problem collections, and tracking improvement in competitive programming.',
           invite_code: 'MYCP2024',
           is_private: true,
-          owner_id: user?.id || 5,
+          owner_id: (user?.id ? parseInt(user.id) : 5) || 5,
           owner_name: user?.username || 'admin',
           member_count: 8,
           created_at: '2024-06-01T10:00:00Z',

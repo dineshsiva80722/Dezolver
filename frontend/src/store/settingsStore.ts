@@ -62,7 +62,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: config.ui.storagePrefix + '-settings',
-      onRehydrate: (state) => {
+      onRehydrateStorage: () => (state) => {
         if (state) {
           applyTheme(state.theme)
         }

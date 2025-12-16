@@ -50,15 +50,18 @@ const AdminConsolePage = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
 
-  // Redirect if not admin
-  if (!user || user.role !== 'admin') {
-    return <Navigate to="/" replace />
-  }
+  const canAccessAdmin = !!user && user.role === 'admin'
 
   useEffect(() => {
-    fetchSystemStats()
-    fetchUsers()
-  }, [])
+    if (canAccessAdmin) {
+      fetchSystemStats()
+      fetchUsers()
+    }
+  }, [canAccessAdmin])
+  
+  if (!canAccessAdmin) {
+    return <Navigate to="/" replace />
+  }
 
   const fetchSystemStats = async () => {
     try {
@@ -98,7 +101,7 @@ const AdminConsolePage = () => {
     }
   }
 
-  const handleDeleteUser = async (userId: number) => {
+  const handleDeleteUser = async (userId: string) => {
     if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
       return
     }
@@ -120,7 +123,7 @@ const AdminConsolePage = () => {
     }
   }
 
-  const handlePromoteUser = async (userId: number) => {
+  const handlePromoteUser = async (userId: string) => {
     if (!confirm('Are you sure you want to promote this user to admin?')) {
       return
     }
@@ -588,7 +591,7 @@ const AdminConsolePage = () => {
                     <div>
                       <div className="font-medium">{contest.title}</div>
                       <div className="text-sm text-muted-foreground">
-                        {contest.participant_count} participants • {contest.is_public ? 'Public' : 'Private'}
+                        {contest.participants} participants • {contest.is_public ? 'Public' : 'Private'}
                       </div>
                     </div>
                     <button

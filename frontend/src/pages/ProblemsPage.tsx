@@ -87,11 +87,9 @@ const ProblemsPage = () => {
       case 'recommended':
         return recommendedProblems
       case 'solved':
-        // Filter to problems solved by the user
-        return user?.solved_problems ? filtered.filter(problem => user.solved_problems!.includes(problem.id)) : []
+        return user?.solved_problems ? filtered.filter(problem => user.solved_problems!.includes(Number(problem.id))) : []
       case 'unsolved':
-        // Filter to problems not solved by the user
-        return user?.solved_problems ? filtered.filter(problem => !user.solved_problems!.includes(problem.id)) : filtered
+        return user?.solved_problems ? filtered.filter(problem => !user.solved_problems!.includes(Number(problem.id))) : filtered
       default:
         return filtered
     }
@@ -160,8 +158,8 @@ const ProblemsPage = () => {
         {[
           { key: 'all', label: 'All Problems', count: problems.length },
           { key: 'recommended', label: 'Recommended', count: recommendedProblems.length, icon: '⭐' },
-          { key: 'solved', label: 'Solved', count: user?.solved_problems ? problems.filter(p => user.solved_problems!.includes(p.id)).length : 0, icon: '✅' },
-          { key: 'unsolved', label: 'Unsolved', count: user?.solved_problems ? problems.filter(p => !user.solved_problems!.includes(p.id)).length : problems.length, icon: '⏳' }
+          { key: 'solved', label: 'Solved', count: user?.solved_problems ? problems.filter(p => user.solved_problems!.includes(Number(p.id))).length : 0, icon: '✅' },
+          { key: 'unsolved', label: 'Unsolved', count: user?.solved_problems ? problems.filter(p => !user.solved_problems!.includes(Number(p.id))).length : problems.length, icon: '⏳' }
         ].map((tab) => (
           <button
             key={tab.key}

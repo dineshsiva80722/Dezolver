@@ -368,10 +368,10 @@ const ProblemDetailPageEnhanced = () => {
             
             <h3 className="text-xl font-semibold mt-6 mb-4">Sample Test Cases</h3>
             <div className="space-y-4">
-              {problem.test_cases && problem.test_cases.filter(tc => tc.is_sample).length > 0 ? (
+              {problem.test_cases && problem.test_cases.filter((tc: any) => tc.is_sample).length > 0 ? (
                 problem.test_cases
-                  .filter(tc => tc.is_sample)
-                  .map((testCase, index) => (
+                  .filter((tc: any) => tc.is_sample)
+                  .map((testCase: any, index: number) => (
                     <div key={testCase.id || index} className="bg-muted rounded-lg p-4">
                       <div className="mb-4">
                         <h4 className="text-sm font-semibold mb-2">Sample Test Case {index + 1}</h4>

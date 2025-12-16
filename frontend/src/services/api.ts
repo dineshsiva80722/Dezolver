@@ -122,27 +122,27 @@ class ApiService {
   }
 
   // Generic request methods
-  async get<T>(url: string, config?: AxiosRequestConfig) {
+  async get<T = any>(url: string, config?: AxiosRequestConfig) {
     const response = await this.api.get<T>(url, config)
     return response.data
   }
 
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig) {
+  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig) {
     const response = await this.api.post<T>(url, data, config)
     return response.data
   }
 
-  async put<T>(url: string, data?: any, config?: AxiosRequestConfig) {
+  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig) {
     const response = await this.api.put<T>(url, data, config)
     return response.data
   }
 
-  async patch<T>(url: string, data?: any, config?: AxiosRequestConfig) {
+  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig) {
     const response = await this.api.patch<T>(url, data, config)
     return response.data
   }
 
-  async delete<T>(url: string, config?: AxiosRequestConfig) {
+  async delete<T = any>(url: string, config?: AxiosRequestConfig) {
     const response = await this.api.delete<T>(url, config)
     return response.data
   }
@@ -370,4 +370,9 @@ export const organizationAPI = {
   
   // Platform Admin only
   getPlatformStats: () => apiService.get('/organizations/platform/stats'),
+}
+
+export const workspaceAPI = {
+  executeCode: (data: { language: string; source_code: string; input?: string; file_name?: string }) =>
+    apiService.post('/submissions/run', data),
 }

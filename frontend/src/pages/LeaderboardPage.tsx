@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '@store/authStore'
-import { leaderboardAPI, userAPI, submissionsAPI } from '@services/api'
+import { leaderboardAPI, userAPI } from '@services/api'
 import toast from 'react-hot-toast'
 import { 
-  TrendingUp, TrendingDown, Award, Target, Code, Trophy, 
-  Medal, Star, Calendar, Activity, Zap, Users, ChevronUp, ChevronDown 
+  TrendingUp, Award, Target, Code, Trophy, 
+  Medal, Star, Calendar, Activity, Zap, Users 
 } from 'lucide-react'
 
 interface LeaderboardUser {
@@ -48,13 +48,11 @@ const LeaderboardPage = () => {
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [userStats, setUserStats] = useState<UserStats | null>(null)
-  const [userPosition, setUserPosition] = useState<any>(null)
 
   useEffect(() => {
     fetchLeaderboard()
     if (user) {
       fetchUserStats()
-      fetchUserPosition()
     }
   }, [timeFrame, category, user])
 
@@ -67,16 +65,7 @@ const LeaderboardPage = () => {
     }
   }
 
-  const fetchUserPosition = async () => {
-    try {
-      if (user?.id) {
-        const position = await leaderboardAPI.getUserPosition(user.id.toString())
-        setUserPosition(position)
-      }
-    } catch (error) {
-      console.error('Error fetching user position:', error)
-    }
-  }
+  // User position is hidden in current UI; can be re-enabled later
 
   const fetchLeaderboard = async () => {
     try {
@@ -166,10 +155,7 @@ const LeaderboardPage = () => {
     return `#${rank}`
   }
 
-  const getRatingChange = (current: number, max: number) => {
-    const change = current - max + 100 // Simulated change
-    return change
-  }
+  // Rating change calculation can be added when needed
 
   const getAccuracyRate = () => {
     if (!userStats) return 0

@@ -4,6 +4,7 @@ import { useOrganizationStore } from '@store/organizationStore'
 import DashboardCard from '@components/common/DashboardCard'
 import LoadingSpinner from '@components/common/LoadingSpinner'
 import { Navigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 
 const PlatformAdminDashboard = () => {
   const { user } = useAuthStore()
@@ -31,7 +32,7 @@ const PlatformAdminDashboard = () => {
   })
 
   useEffect(() => {
-    if (user?.role === 'platform_admin' || user?.tier === 'platform') {
+    if (user?.tier === 'platform') {
       fetchPlatformStats()
     }
   }, [user, fetchPlatformStats])
@@ -68,7 +69,7 @@ const PlatformAdminDashboard = () => {
   }
 
   // Redirect if not platform admin
-  if (!user || user.role !== 'platform_admin') {
+  if (!user || user.tier !== 'platform') {
     return <Navigate to="/profile" replace />
   }
 
@@ -89,7 +90,7 @@ const PlatformAdminDashboard = () => {
               </p>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">₹{(platformStats.totalRevenue / 100000).toFixed(1)}L</div>
+              <div className="text-2xl font-bold text-green-400">₹{platformStats ? (platformStats.totalRevenue / 100000).toFixed(1) : '0'}L</div>
               <div className="text-sm text-slate-300">Monthly Revenue</div>
             </div>
           </div>

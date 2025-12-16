@@ -25,6 +25,7 @@ interface Question {
   type: string
   marks: number
   order_index: number
+  explanation?: string
   options?: QuestionOption[]
 }
 
@@ -68,20 +69,23 @@ const AssessmentPage = () => {
     ],
   })
 
-  // Redirect if not admin or problem setter
-  if (!user || (user.role !== 'admin' && user.role !== 'problem_setter' && user.role !== 'super_admin')) {
-    return <Navigate to="/" replace />
-  }
+  const canAccess = !!user && (user.role === 'admin' || user.role === 'problem_setter' || user.role === 'super_admin')
 
   useEffect(() => {
-    fetchAssessments()
-  }, [])
+    if (canAccess) {
+      fetchAssessments()
+    }
+  }, [canAccess])
+
+  if (!canAccess) {
+    return <Navigate to="/" replace />
+  }
 
   const fetchAssessments = async () => {
     setLoading(true)
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`${config.API_URL}/api/assessments`, {
+      const response = await fetch(`${config.api.baseUrl}/assessments`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -105,7 +109,7 @@ const AssessmentPage = () => {
     e.preventDefault()
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`${config.API_URL}/api/assessments`, {
+      const response = await fetch(`${config.api.baseUrl}/assessments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -153,7 +157,7 @@ const AssessmentPage = () => {
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(
-        `${config.API_URL}/api/assessments/${selectedAssessment.id}/questions/bulk`,
+        `${config.api.baseUrl}/assessments/${selectedAssessment.id}/questions/bulk`,
         {
           method: 'POST',
           headers: {
@@ -180,7 +184,10 @@ const AssessmentPage = () => {
   }
 
   const handleAddQuestion = () => {
-    setQuestions([...questions, { ...newQuestion, order_index: questions.length }])
+    setQuestions([
+      ...questions,
+      { id: `temp-${Date.now()}-${questions.length}`, ...newQuestion, order_index: questions.length }
+    ])
     setNewQuestion({
       question_text: '',
       type: 'multiple_choice',
@@ -222,7 +229,7 @@ const AssessmentPage = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`${config.API_URL}/api/assessments/${id}`, {
+      const response = await fetch(`${config.api.baseUrl}/assessments/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
