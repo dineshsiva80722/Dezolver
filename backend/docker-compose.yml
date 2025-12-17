@@ -14,8 +14,6 @@ services:
       - DB_PASSWORD=postgres
       - DB_NAME=techfolks_db
       - REDIS_URL=redis://redis:33545
-      - REDIS_HOST=redis
-      - REDIS_PORT=33545
       - JUDGE0_API_URL=http://judge0:2358
     depends_on:
       postgres:

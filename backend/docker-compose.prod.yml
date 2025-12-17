@@ -15,8 +15,6 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:33545
-      - REDIS_HOST=redis
-      - REDIS_PORT=33545
       - JWT_SECRET=${JWT_SECRET}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
       - JUDGE0_API_URL=http://judge0:2358

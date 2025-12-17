@@ -55,8 +55,6 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres123
       REDIS_URL: redis://redis:33545
-      REDIS_HOST: redis
-      REDIS_PORT: 33545
       JWT_SECRET: dev_jwt_secret_key_change_in_production
       JWT_EXPIRE: 24h
       JWT_REFRESH_EXPIRE: 7d

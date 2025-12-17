@@ -8,19 +8,15 @@ import { MockJudgeService } from './mock-judge.service';
 import { socketService } from './socketService';
 import { logger } from '../utils/logger';
 import { SubmissionVerdict } from '../types/enums';
+import { createBullRedisClient } from '../config/redis';
 
 const submissionRepository = AppDataSource.getRepository(Submission);
 const problemRepository = AppDataSource.getRepository(Problem);
 const userRepository = AppDataSource.getRepository(User);
 
 // Create submission processing queue
-const redisUrl = new URL(process.env.REDIS_URL as string);
 export const submissionQueue = new Bull('submission-processing', {
-  redis: {
-    host: redisUrl.hostname,
-    port: parseInt(redisUrl.port || '33545'),
-    password: redisUrl.password || undefined
-  },
+  createClient: (type) => createBullRedisClient(type, 'submission-processing'),
   defaultJobOptions: {
     removeOnComplete: true,
     removeOnFail: false,
@@ -214,11 +210,7 @@ submissionQueue.on('stalled', (job) => {
 
 // Contest submission queue for handling contest-specific logic
 export const contestQueue = new Bull('contest-processing', {
-  redis: {
-    host: redisUrl.hostname,
-    port: parseInt(redisUrl.port || '33545'),
-    password: redisUrl.password || undefined
-  }
+  createClient: (type) => createBullRedisClient(type, 'contest-processing')
 });
 
 // Process contest events

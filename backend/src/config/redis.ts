@@ -1,53 +1,105 @@
 import Redis from 'ioredis';
 import { logger } from '../utils/logger';
 
-const parsed = new URL(process.env.REDIS_URL as string);
-const baseOptions = {
-  host: parsed.hostname,
-  port: parseInt(parsed.port || '33545'),
-  password: parsed.password || undefined,
-  tls: parsed.protocol === 'rediss:' ? {} : undefined,
-  maxRetriesPerRequest: null as any,
-  enableOfflineQueue: false
-};
+if (!process.env.REDIS_URL) {
+  throw new Error('CRITICAL: REDIS_URL environment variable must be defined for Redis connections');
+}
 
-export const redis = new Redis(baseOptions);
-export const pubClient = new Redis(baseOptions);
-export const subClient = new Redis(baseOptions);
+export const redis = new Redis(process.env.REDIS_URL as string);
+export const pubClient = new Redis(process.env.REDIS_URL as string);
+export const subClient = new Redis(process.env.REDIS_URL as string);
 
 redis.on('connect', () => {
-  logger.info('Redis connected successfully');
+  logger.info('Redis [main] connected');
 });
-
+redis.on('ready', () => {
+  logger.info('Redis [main] ready');
+});
 redis.on('error', (error) => {
-  logger.error('Redis connection error:', error);
+  logger.error('Redis [main] error', error);
+});
+redis.on('close', () => {
+  logger.warn('Redis [main] closed');
+});
+redis.on('reconnecting', (delay: number) => {
+  logger.warn('Redis [main] reconnecting', { delay });
 });
 
-redis.on('close', () => {
-  logger.warn('Redis connection closed');
+pubClient.on('connect', () => {
+  logger.info('Redis [pub] connected');
+});
+pubClient.on('ready', () => {
+  logger.info('Redis [pub] ready');
+});
+pubClient.on('error', (error) => {
+  logger.error('Redis [pub] error', error);
+});
+pubClient.on('close', () => {
+  logger.warn('Redis [pub] closed');
+});
+pubClient.on('reconnecting', (delay: number) => {
+  logger.warn('Redis [pub] reconnecting', { delay });
+});
+
+subClient.on('connect', () => {
+  logger.info('Redis [sub] connected');
+});
+subClient.on('ready', () => {
+  logger.info('Redis [sub] ready');
+});
+subClient.on('error', (error) => {
+  logger.error('Redis [sub] error', error);
+});
+subClient.on('close', () => {
+  logger.warn('Redis [sub] closed');
+});
+subClient.on('reconnecting', (delay: number) => {
+  logger.warn('Redis [sub] reconnecting', { delay });
 });
 
 export const connectRedis = async (): Promise<void> => {
   try {
-    await redis.ping();
-    logger.info('Redis connection verified');
+    await Promise.all([redis.ping(), pubClient.ping(), subClient.ping()]);
+    logger.info('Redis clients health check passed');
   } catch (error) {
-    logger.error('Redis connection failed:', error);
+    logger.error('Redis clients health check failed', error);
     throw error;
   }
 };
 
 export const closeRedisConnections = async (): Promise<void> => {
   try {
-    await redis.quit();
-    await pubClient.quit();
-    await subClient.quit();
+    await Promise.all([redis.quit(), pubClient.quit(), subClient.quit()]);
     logger.info('Redis connections closed');
   } catch (error) {
-    logger.error('Error closing Redis connections:', error);
+    logger.error('Error closing Redis connections', error);
   }
 };
 
+export const createRedisClient = (): Redis => {
+  return new Redis(process.env.REDIS_URL as string);
+};
+
+export const createBullRedisClient = (type: string, label?: string): Redis => {
+  const client = new Redis(process.env.REDIS_URL as string);
+  const id = `bull:${label || 'queue'}:${type}`;
+  client.on('connect', () => {
+    logger.info(`Redis [${id}] connected`);
+  });
+  client.on('ready', () => {
+    logger.info(`Redis [${id}] ready`);
+  });
+  client.on('error', (error) => {
+    logger.error(`Redis [${id}] error`, error);
+  });
+  client.on('close', () => {
+    logger.warn(`Redis [${id}] closed`);
+  });
+  client.on('reconnecting', (delay: number) => {
+    logger.warn(`Redis [${id}] reconnecting`, { delay });
+  });
+  return client;
+};
 export const cache = {
   get: async (key: string): Promise<any> => {
     try {
