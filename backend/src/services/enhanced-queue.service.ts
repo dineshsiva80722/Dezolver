@@ -6,7 +6,6 @@ import { Submission } from '../models/Submission.entity';
 import { Problem } from '../models/Problem.entity';
 import { TestCase } from '../models/TestCase.entity';
 import { SubmissionVerdict } from '../types/enums';
-import { createBullRedisClient } from '../config/redis';
 
 export interface SubmissionJobData {
   submissionId: string;
@@ -95,11 +94,14 @@ export class EnhancedQueueService {
 
     // Create queues
     for (const [queueName, config] of Object.entries(this.queueConfigs)) {
-      const queue = new Bull(queueName, {
-        createClient: (type) => createBullRedisClient(type, queueName),
-        defaultJobOptions: config.defaultJobOptions,
-        settings: config.settings
-      } as QueueOptions);
+      const queue = new Bull(
+        queueName,
+        process.env.REDIS_URL as string,
+        {
+          defaultJobOptions: config.defaultJobOptions,
+          settings: config.settings
+        } as QueueOptions
+      );
 
       // Set up queue event handlers
       this.setupQueueEventHandlers(queue, queueName);

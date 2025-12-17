@@ -8,25 +8,27 @@ import { MockJudgeService } from './mock-judge.service';
 import { socketService } from './socketService';
 import { logger } from '../utils/logger';
 import { SubmissionVerdict } from '../types/enums';
-import { createBullRedisClient } from '../config/redis';
 
 const submissionRepository = AppDataSource.getRepository(Submission);
 const problemRepository = AppDataSource.getRepository(Problem);
 const userRepository = AppDataSource.getRepository(User);
 
 // Create submission processing queue
-export const submissionQueue = new Bull('submission-processing', {
-  createClient: (type) => createBullRedisClient(type, 'submission-processing'),
-  defaultJobOptions: {
-    removeOnComplete: true,
-    removeOnFail: false,
-    attempts: 3,
-    backoff: {
-      type: 'exponential',
-      delay: 2000
+export const submissionQueue = new Bull(
+  'submission-processing',
+  process.env.REDIS_URL as string,
+  {
+    defaultJobOptions: {
+      removeOnComplete: true,
+      removeOnFail: false,
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 2000
+      }
     }
   }
-});
+);
 
 // Process submission jobs
 submissionQueue.process('judge-submission', async (job) => {
@@ -209,9 +211,10 @@ submissionQueue.on('stalled', (job) => {
 });
 
 // Contest submission queue for handling contest-specific logic
-export const contestQueue = new Bull('contest-processing', {
-  createClient: (type) => createBullRedisClient(type, 'contest-processing')
-});
+export const contestQueue = new Bull(
+  'contest-processing',
+  process.env.REDIS_URL as string
+);
 
 // Process contest events
 contestQueue.process('update-standings', async (job) => {
