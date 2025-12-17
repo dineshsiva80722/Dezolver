@@ -44,6 +44,7 @@ const app: Application = express();
 // Security middleware
 app.use(helmet());
 app.use(cors(corsOptions));
+app.options('*', cors());
 app.use(compression());
 
 // Body parsing middleware
