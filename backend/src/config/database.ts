@@ -117,7 +117,7 @@ export const AppDataSource = new DataSource({
     QuestionOption,
     AssessmentAttempt
   ],
-  migrations: ['src/database/migrations/*.ts'],
+  migrations: ['src/database/migrations/*.ts', 'dist/database/migrations/*.js'],
   subscribers: [],
 });
 
