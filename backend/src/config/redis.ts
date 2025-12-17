@@ -93,9 +93,19 @@ export const createRedisClient = (): Redis => {
 };
 
 export const createBullRedisClient = (type: string, label?: string): Redis => {
-  const client = new Redis(process.env.REDIS_URL as string, {
-    enableReadyCheck: false
-  });
+  let client: Redis;
+  switch (type) {
+    case 'client':
+      client = new Redis(process.env.REDIS_URL as string, {
+        maxRetriesPerRequest: null as any
+      });
+      break;
+    case 'subscriber':
+    case 'bclient':
+    default:
+      client = new Redis(process.env.REDIS_URL as string);
+      break;
+  }
   const id = `bull:${label || 'queue'}:${type}`;
   client.on('connect', () => {
     logger.info(`Redis [${id}] connected`);
