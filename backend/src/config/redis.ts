@@ -5,9 +5,18 @@ if (!process.env.REDIS_URL) {
   throw new Error('CRITICAL: REDIS_URL environment variable must be defined for Redis connections');
 }
 
-export const redis = new Redis(process.env.REDIS_URL as string);
-export const pubClient = new Redis(process.env.REDIS_URL as string);
-export const subClient = new Redis(process.env.REDIS_URL as string);
+export const redis = new Redis(process.env.REDIS_URL as string, {
+  maxRetriesPerRequest: null as any,
+  enableOfflineQueue: false
+});
+export const pubClient = new Redis(process.env.REDIS_URL as string, {
+  maxRetriesPerRequest: null as any,
+  enableOfflineQueue: false
+});
+export const subClient = new Redis(process.env.REDIS_URL as string, {
+  maxRetriesPerRequest: null as any,
+  enableOfflineQueue: false
+});
 
 redis.on('connect', () => {
   logger.info('Redis [main] connected');
@@ -77,11 +86,16 @@ export const closeRedisConnections = async (): Promise<void> => {
 };
 
 export const createRedisClient = (): Redis => {
-  return new Redis(process.env.REDIS_URL as string);
+  return new Redis(process.env.REDIS_URL as string, {
+    maxRetriesPerRequest: null as any,
+    enableOfflineQueue: false
+  });
 };
 
 export const createBullRedisClient = (type: string, label?: string): Redis => {
-  const client = new Redis(process.env.REDIS_URL as string);
+  const client = new Redis(process.env.REDIS_URL as string, {
+    enableReadyCheck: false
+  });
   const id = `bull:${label || 'queue'}:${type}`;
   client.on('connect', () => {
     logger.info(`Redis [${id}] connected`);
