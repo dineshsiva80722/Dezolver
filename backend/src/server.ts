@@ -3,7 +3,6 @@ import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import app from './app';
 import { connectDatabase } from './config/database';
-import { connectRedis } from './config/redis';
 import { logger } from './utils/logger';
 import { socketService } from './services/socketService';
 
@@ -38,10 +37,6 @@ const startServer = async () => {
     // Connect to database
     await connectDatabase();
     logger.info('Database connected successfully');
-
-    // Connect to Redis
-    await connectRedis();
-    logger.info('Redis connected successfully');
 
     // Start server
     server.listen(PORT, () => {

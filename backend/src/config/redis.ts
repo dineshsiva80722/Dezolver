@@ -66,16 +66,6 @@ subClient.on('reconnecting', (delay: number) => {
   logger.warn('Redis [sub] reconnecting', { delay });
 });
 
-export const connectRedis = async (): Promise<void> => {
-  try {
-    await Promise.all([redis.ping(), pubClient.ping(), subClient.ping()]);
-    logger.info('Redis clients health check passed');
-  } catch (error) {
-    logger.error('Redis clients health check failed', error);
-    throw error;
-  }
-};
-
 export const closeRedisConnections = async (): Promise<void> => {
   try {
     await Promise.all([redis.quit(), pubClient.quit(), subClient.quit()]);
