@@ -7,7 +7,7 @@
     "dev": "ts-node-dev --respawn --transpile-only --exit-child -r tsconfig-paths/register src/server.ts",
     "dev:nodemon": "nodemon",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "npm run migration:run && node dist/server.js",
     "start:prod": "NODE_ENV=production node dist/server.js",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -16,6 +16,7 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
     "migrate": "node dist/utils/migrate.js",
+    "migration:run": "typeorm migration:run -d ./dist/config/ormconfig.js",
     "seed": "node dist/utils/seed.js",
     "setup:db": "ts-node src/scripts/setup-database.ts"
   },
