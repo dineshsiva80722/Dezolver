@@ -5,6 +5,7 @@ import app from './app';
 import { connectDatabase } from './config/database';
 import { logger } from './utils/logger';
 import { socketService } from './services/socketService';
+import { runMigrations } from './scripts/run-migrations.js';
 
 const PORT = parseInt(process.env.PORT || '3000');
 const HOST = process.env.HOST || '0.0.0.0';
@@ -50,6 +51,11 @@ const startServer = async () => {
     server.listen(PORT, HOST, () => {
       logger.info(`Server is running on http://${HOST}:${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV}`);
+      if (process.env.NODE_ENV === 'production') {
+        runMigrations().catch((err) => {
+          logger.error('Background migrations failed', err);
+        });
+      }
     });
   } catch (error) {
     logger.error('Failed to start server:', error);

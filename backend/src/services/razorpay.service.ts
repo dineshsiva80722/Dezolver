@@ -38,10 +38,8 @@ export class RazorpayService {
       });
     } else {
       this.razorpay = null;
-      if (process.env.NODE_ENV === 'production') {
-        throw new Error(
-          'Razorpay credentials not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in environment variables.'
-        );
+      if (!this.keyId || !this.keySecret) {
+        console.warn('Razorpay credentials not set, skipping payments');
       }
     }
   }

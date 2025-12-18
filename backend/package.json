@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "Backend for TechFolks competitive coding platform",
   "main": "dist/server.js",
+  "type": "module",
   "scripts": {
     "dev": "cross-env NODE_ENV=development DOTENV_CONFIG_PATH=.env.development ts-node-dev --respawn --transpile-only --exit-child -r tsconfig-paths/register src/server.ts",
     "dev:nodemon": "nodemon",
     "build": "tsc",
     "start": "node dist/server.js",
+    "migrate": "node dist/scripts/run-migrations.js",
     "start:migrate": "node dist/scripts/run-migrations.js",
     "start:prod": "NODE_ENV=production node dist/server.js",
     "test": "jest",
