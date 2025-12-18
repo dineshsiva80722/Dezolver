@@ -86,7 +86,7 @@ const RegisterPage = () => {
         phoneNumber: formData.phoneNumber || undefined
       })
 
-      const data = response?.data ?? response
+      const data = response?.data?.data ?? response?.data ?? response
 
       if (data?.user && data?.token) {
         const { user, token, refreshToken } = data

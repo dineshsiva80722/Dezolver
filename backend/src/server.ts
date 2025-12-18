@@ -6,7 +6,7 @@ import { connectDatabase } from './config/database';
 import { logger } from './utils/logger';
 import { socketService } from './services/socketService';
 
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT || '3000');
 const HOST = process.env.HOST || '0.0.0.0';
 
 const server = http.createServer(app);
@@ -47,7 +47,7 @@ const startServer = async () => {
     }
 
     // Start server
-    server.listen(PORT, () => {
+    server.listen(PORT, HOST, () => {
       logger.info(`Server is running on http://${HOST}:${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV}`);
     });

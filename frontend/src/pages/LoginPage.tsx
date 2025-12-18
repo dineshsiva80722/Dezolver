@@ -27,7 +27,7 @@ const LoginPage = () => {
     try {
       const response = await authAPI.login(data)
 
-      const responseData = response?.data ?? response
+      const responseData = response?.data?.data ?? response?.data ?? response
 
       if (responseData?.user && responseData?.token) {
         const { user, token, refreshToken } = responseData

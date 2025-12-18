@@ -52,15 +52,22 @@ export class AuthController {
       await userRepository.save(user);
 
       // Generate JWT tokens
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        throw new Error('JWT_SECRET missing');
+      }
+      const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
+      if (!jwtRefreshSecret) {
+        throw new Error('JWT_REFRESH_SECRET missing');
+      }
       const token = jwt.sign(
         { userId: user.id, username: user.username, role: user.role },
-        process.env.JWT_SECRET || 'your-secret-key',
+        jwtSecret,
         { expiresIn: '7d' }
       );
-
       const refreshToken = jwt.sign(
         { userId: user.id },
-        process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key',
+        jwtRefreshSecret,
         { expiresIn: '30d' }
       );
 
@@ -127,15 +134,22 @@ export class AuthController {
       await userRepository.save(user);
 
       // Generate JWT tokens
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        throw new Error('JWT_SECRET missing');
+      }
+      const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
+      if (!jwtRefreshSecret) {
+        throw new Error('JWT_REFRESH_SECRET missing');
+      }
       const token = jwt.sign(
         { userId: user.id, username: user.username, role: user.role },
-        process.env.JWT_SECRET || 'your-secret-key',
+        jwtSecret,
         { expiresIn: '7d' }
       );
-
       const refreshToken = jwt.sign(
         { userId: user.id },
-        process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key',
+        jwtRefreshSecret,
         { expiresIn: '30d' }
       );
 
@@ -186,10 +200,11 @@ export class AuthController {
       }
 
       // Verify refresh token
-      const decoded = jwt.verify(
-        refreshToken,
-        process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key'
-      ) as { userId: string };
+      const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
+      if (!jwtRefreshSecret) {
+        throw new Error('JWT_REFRESH_SECRET missing');
+      }
+      const decoded = jwt.verify(refreshToken, jwtRefreshSecret) as { userId: string };
 
       const user = await userRepository.findOne({
         where: { id: decoded.userId }
@@ -203,9 +218,13 @@ export class AuthController {
       }
 
       // Generate new access token
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        throw new Error('JWT_SECRET missing');
+      }
       const newToken = jwt.sign(
         { userId: user.id, username: user.username, role: user.role },
-        process.env.JWT_SECRET || 'your-secret-key',
+        jwtSecret,
         { expiresIn: '7d' }
       );
 

@@ -25,7 +25,11 @@ class SocketService {
           return next(new Error('Authentication required'));
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as {
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) {
+          return next(new Error('JWT_SECRET missing'));
+        }
+        const decoded = jwt.verify(token, jwtSecret) as {
           userId: string;
           username: string;
         };
