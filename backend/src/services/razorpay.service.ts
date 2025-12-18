@@ -18,24 +18,32 @@ export interface VerifyPaymentParams {
 }
 
 export class RazorpayService {
-  private razorpay: Razorpay;
+  private razorpay: Razorpay | null;
   private keyId: string;
   private keySecret: string;
+  private enabled: boolean;
 
   constructor() {
     this.keyId = process.env.RAZORPAY_KEY_ID || '';
     this.keySecret = process.env.RAZORPAY_KEY_SECRET || '';
+    const disabledFlag =
+      (process.env.ENABLE_RAZORPAY && process.env.ENABLE_RAZORPAY.toLowerCase() === 'false') ||
+      (process.env.RAZORPAY_ENABLED && process.env.RAZORPAY_ENABLED.toLowerCase() === 'false');
+    this.enabled = !!this.keyId && !!this.keySecret && !disabledFlag;
 
-    if (!this.keyId || !this.keySecret) {
-      throw new Error(
-        'Razorpay credentials not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in environment variables.'
-      );
+    if (this.enabled) {
+      this.razorpay = new Razorpay({
+        key_id: this.keyId,
+        key_secret: this.keySecret
+      });
+    } else {
+      this.razorpay = null;
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error(
+          'Razorpay credentials not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in environment variables.'
+        );
+      }
     }
-
-    this.razorpay = new Razorpay({
-      key_id: this.keyId,
-      key_secret: this.keySecret
-    });
   }
 
   /**
@@ -43,6 +51,9 @@ export class RazorpayService {
    */
   async createOrder(params: CreateOrderParams): Promise<any> {
     try {
+      if (!this.enabled || !this.razorpay) {
+        throw new Error('Payment gateway disabled in this environment');
+      }
       const options = {
         amount: Math.round(params.amount * 100), // Convert to paise
         currency: params.currency || 'INR',
@@ -65,6 +76,9 @@ export class RazorpayService {
    */
   verifyPaymentSignature(params: VerifyPaymentParams): boolean {
     try {
+      if (!this.enabled) {
+        return false;
+      }
       const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = params;
 
       const body = razorpay_order_id + '|' + razorpay_payment_id;
@@ -102,6 +116,9 @@ export class RazorpayService {
    */
   async fetchPayment(paymentId: string): Promise<any> {
     try {
+      if (!this.enabled || !this.razorpay) {
+        throw new Error('Payment gateway disabled in this environment');
+      }
       const payment = await this.razorpay.payments.fetch(paymentId);
       return payment;
     } catch (error) {
@@ -117,6 +134,9 @@ export class RazorpayService {
    */
   async fetchOrder(orderId: string): Promise<any> {
     try {
+      if (!this.enabled || !this.razorpay) {
+        throw new Error('Payment gateway disabled in this environment');
+      }
       const order = await this.razorpay.orders.fetch(orderId);
       return order;
     } catch (error) {
@@ -132,6 +152,9 @@ export class RazorpayService {
    */
   async capturePayment(paymentId: string, amount: number): Promise<any> {
     try {
+      if (!this.enabled || !this.razorpay) {
+        throw new Error('Payment gateway disabled in this environment');
+      }
       const payment = await this.razorpay.payments.capture(
         paymentId,
         Math.round(amount * 100), // Convert to paise
@@ -151,6 +174,9 @@ export class RazorpayService {
    */
   async refundPayment(paymentId: string, amount?: number): Promise<any> {
     try {
+      if (!this.enabled || !this.razorpay) {
+        throw new Error('Payment gateway disabled in this environment');
+      }
       const options: any = {
         payment_id: paymentId
       };
@@ -324,6 +350,6 @@ export class RazorpayService {
    * Get Razorpay key for frontend
    */
   getRazorpayKey(): string {
-    return this.keyId;
+    return this.enabled ? this.keyId : '';
   }
 }

@@ -35,8 +35,16 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 const startServer = async () => {
   try {
     // Connect to database
-    await connectDatabase();
-    logger.info('Database connected successfully');
+    try {
+      await connectDatabase();
+      logger.info('Database connected successfully');
+    } catch (dbError) {
+      if (process.env.NODE_ENV === 'development') {
+        logger.warn('Database connection failed; continuing in development mode', dbError as Error);
+      } else {
+        throw dbError;
+      }
+    }
 
     // Start server
     server.listen(PORT, () => {

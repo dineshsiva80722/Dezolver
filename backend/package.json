@@ -4,7 +4,7 @@
   "description": "Backend for TechFolks competitive coding platform",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only --exit-child -r tsconfig-paths/register src/server.ts",
+    "dev": "cross-env NODE_ENV=development DOTENV_CONFIG_PATH=.env.development ts-node-dev --respawn --transpile-only --exit-child -r tsconfig-paths/register src/server.ts",
     "dev:nodemon": "nodemon",
     "build": "tsc",
     "start": "node dist/server.js",
@@ -16,8 +16,9 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
-    "migrate": "node dist/utils/migrate.js",
-    "migration:run": "typeorm migration:run -d ./dist/config/ormconfig.js",
+    "migration:run:dev": "cross-env NODE_ENV=development ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d src/config/ormconfig.ts",
+    "migration:generate": "cross-env NODE_ENV=development ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:generate src/database/migrations/NewMigration -d src/config/ormconfig.ts",
+    "migration:create": "cross-env NODE_ENV=development typeorm migration:create src/database/migrations/NewMigration",
     "seed": "node dist/utils/seed.js",
     "setup:db": "ts-node src/scripts/setup-database.ts"
   },
@@ -74,6 +75,7 @@
     "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/compression": "^1.7.5",

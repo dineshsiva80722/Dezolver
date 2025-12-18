@@ -1,19 +1,46 @@
 import Redis from 'ioredis';
 import { logger } from '../utils/logger';
 
-if (!process.env.REDIS_URL) {
+const isDev = process.env.NODE_ENV === 'development';
+const rawUrl = process.env.REDIS_URL || '';
+const shouldFallback =
+  isDev &&
+  (rawUrl === '' ||
+    rawUrl.includes('redis.railway.internal') ||
+    rawUrl.includes('localhost') ||
+    rawUrl.includes('127.0.0.1'));
+
+const fallbackHost = process.env.REDIS_HOST || 'nozomi.proxy.rlwy.net';
+const fallbackPort = process.env.REDIS_PORT || '33545';
+const fallbackPassword = process.env.REDIS_PASSWORD || 'TCNGeVnyqBqQnPspqPxlOwLqibsCKRPZ';
+
+const fallbackUrl =
+  fallbackPassword
+    ? `redis://default:${fallbackPassword}@${fallbackHost}:${fallbackPort}`
+    : `redis://${fallbackHost}:${fallbackPort}`;
+
+export const redisUrl = shouldFallback ? fallbackUrl : rawUrl;
+
+const maskedRedisUrl = (redisUrl || '').replace(/:[^:@]+@/, ':****@');
+logger.info('Redis connecting to:', {
+  url: maskedRedisUrl,
+  isDev,
+  shouldFallback
+});
+
+if (!redisUrl) {
   throw new Error('CRITICAL: REDIS_URL environment variable must be defined for Redis connections');
 }
 
-export const redis = new Redis(process.env.REDIS_URL, {
+export const redis = new Redis(redisUrl, {
   maxRetriesPerRequest: null as any,
   enableOfflineQueue: false
 });
-export const pubClient = new Redis(process.env.REDIS_URL, {
+export const pubClient = new Redis(redisUrl, {
   maxRetriesPerRequest: null as any,
   enableOfflineQueue: false
 });
-export const subClient = new Redis(process.env.REDIS_URL, {
+export const subClient = new Redis(redisUrl, {
   maxRetriesPerRequest: null as any,
   enableOfflineQueue: false
 });
@@ -76,7 +103,7 @@ export const closeRedisConnections = async (): Promise<void> => {
 };
 
 export const createRedisClient = (): Redis => {
-  return new Redis(process.env.REDIS_URL as string, {
+  return new Redis(redisUrl as string, {
     maxRetriesPerRequest: null as any,
     enableOfflineQueue: false
   });

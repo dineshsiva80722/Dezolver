@@ -95,7 +95,7 @@ export const AppDataSource = new DataSource({
   
   cache: false,
   
-  synchronize: false, // Always false in production
+  synchronize: false, 
   logging: process.env.NODE_ENV === 'development' ? ['query', 'error'] : ['error'],
   entities: [
     User,

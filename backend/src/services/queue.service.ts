@@ -8,6 +8,7 @@ import { MockJudgeService } from './mock-judge.service';
 import { socketService } from './socketService';
 import { logger } from '../utils/logger';
 import { SubmissionVerdict } from '../types/enums';
+import { redisUrl } from '../config/redis';
 
 const submissionRepository = AppDataSource.getRepository(Submission);
 const problemRepository = AppDataSource.getRepository(Problem);
@@ -16,7 +17,7 @@ const userRepository = AppDataSource.getRepository(User);
 // Create submission processing queue
 export const submissionQueue = new Bull(
   'submission-processing',
-  process.env.REDIS_URL as string,
+  redisUrl as string,
   {
     defaultJobOptions: {
       removeOnComplete: true,
@@ -213,8 +214,112 @@ submissionQueue.on('stalled', (job) => {
 // Contest submission queue for handling contest-specific logic
 export const contestQueue = new Bull(
   'contest-processing',
-  process.env.REDIS_URL as string
+  redisUrl as string
 );
+
+export const enqueueSubmissionOrProcessImmediately = async (data: {
+  submissionId: string;
+  problemId: string;
+  language: string;
+  sourceCode: string;
+  timeLimit: number;
+  memoryLimit: number;
+}): Promise<void> => {
+  try {
+    await submissionQueue.add('judge-submission', data);
+  } catch (err) {
+    try {
+      const testCases = await AppDataSource.query(
+        `
+        SELECT id, input, expected_output, is_sample, points
+        FROM test_cases
+        WHERE problem_id = $1
+        ORDER BY is_sample DESC, id ASC
+      `,
+        [data.problemId]
+      );
+
+      if (testCases.length === 0) {
+        throw new Error('No test cases found for problem');
+      }
+
+      await submissionRepository.update(data.submissionId, {
+        verdict: SubmissionVerdict.PROCESSING
+      });
+
+      const submission = await submissionRepository.findOne({
+        where: { id: data.submissionId }
+      });
+
+      if (submission) {
+        socketService.emitToUser(submission.user_id, 'submission-update', {
+          id: data.submissionId,
+          verdict: 'processing'
+        });
+      }
+
+      const results = await MockJudgeService.batchExecute(
+        testCases.map((tc: any) => ({
+          input: tc.input,
+          expectedOutput: tc.expected_output
+        })),
+        {
+          language: data.language,
+          sourceCode: data.sourceCode,
+          timeLimit: data.timeLimit / 1000,
+          memoryLimit: data.memoryLimit
+        }
+      );
+
+      let verdict: SubmissionVerdict = SubmissionVerdict.ACCEPTED;
+      let score = 0;
+      let maxTime = 0;
+      let maxMemory = 0;
+      let errorMessage = null as any;
+      let failedTestCase = null as any;
+
+      for (let i = 0; i < results.length; i++) {
+        const result = results[i];
+        const testCase = testCases[i];
+        maxTime = Math.max(maxTime, parseFloat(result.time || '0'));
+        maxMemory = Math.max(maxMemory, result.memory || 0);
+        const testVerdict = MockJudgeService.mapStatusToVerdict(result.status.id);
+        if (testVerdict !== 'accepted') {
+          verdict = testVerdict as SubmissionVerdict;
+          errorMessage = result.compile_output || result.stderr || result.status.description;
+          failedTestCase = i + 1;
+          break;
+        }
+        score += testCase.points || 0;
+      }
+
+      await submissionRepository.update(data.submissionId, {
+        verdict: verdict as any,
+        score,
+        time_used: Math.round(maxTime * 1000),
+        memory_used: Math.round(maxMemory / 1024),
+        error_message: errorMessage as any
+      });
+
+      if (submission) {
+        socketService.emitToUser(submission.user_id, 'submission-update', {
+          id: data.submissionId,
+          verdict,
+          score,
+          time_used: maxTime,
+          memory_used: maxMemory,
+          failedTestCase,
+          errorMessage
+        });
+      }
+    } catch (processingError) {
+      await submissionRepository.update(data.submissionId, {
+        verdict: SubmissionVerdict.INTERNAL_ERROR as any,
+        error_message: 'Internal error during judging'
+      });
+    }
+  }
+};
 
 // Process contest events
 contestQueue.process('update-standings', async (job) => {

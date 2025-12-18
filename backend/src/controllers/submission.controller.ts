@@ -5,7 +5,7 @@ import { Problem } from '../models/Problem.entity';
 import { User } from '../models/User.entity';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { SubmissionVerdict, ProgrammingLanguage } from '../types/enums';
-import { submissionQueue } from '../services/queue.service';
+import { enqueueSubmissionOrProcessImmediately } from '../services/queue.service';
 import { judge0Service } from '../services/judge0.service';
 import { socketService } from '../services/socketService';
 
@@ -58,8 +58,7 @@ export class SubmissionController {
 
       await submissionRepository.save(submission);
 
-      // Add to processing queue
-      await submissionQueue.add('judge-submission', {
+      await enqueueSubmissionOrProcessImmediately({
         submissionId: submission.id,
         problemId: problem_id,
         language,
@@ -287,8 +286,7 @@ export class SubmissionController {
       submission.error_message = null as any;
       await submissionRepository.save(submission);
 
-      // Add to processing queue
-      await submissionQueue.add('judge-submission', {
+      await enqueueSubmissionOrProcessImmediately({
         submissionId: submission.id,
         problemId: submission.problem_id,
         language: submission.language,
@@ -412,11 +410,9 @@ export class SubmissionController {
 
       const savedSubmission = await submissionRepository.save(submission);
 
-      // Add to judge queue for processing
-      await submissionQueue.add('judge-submission', {
+      await enqueueSubmissionOrProcessImmediately({
         submissionId: savedSubmission.id,
         problemId: problem.id,
-        userId,
         language,
         sourceCode: code,
         timeLimit: problem.time_limit,

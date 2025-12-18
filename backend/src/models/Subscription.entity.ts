@@ -7,7 +7,8 @@ import {
   ManyToOne,
   JoinColumn
 } from 'typeorm';
-import { Organization, OrganizationPlan } from './Organization.entity';
+import { Organization } from './Organization.entity';
+import type { OrganizationPlan } from './Organization.entity';
 import { User } from './User.entity';
 
 export enum SubscriptionStatus {
@@ -41,7 +42,7 @@ export class Subscription {
 
   @Column({
     type: 'enum',
-    enum: OrganizationPlan,
+    enum: ['starter', 'professional', 'enterprise', 'unlimited'],
     enumName: 'organization_plan'
   })
   plan: OrganizationPlan;

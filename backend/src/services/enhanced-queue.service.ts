@@ -6,6 +6,7 @@ import { Submission } from '../models/Submission.entity';
 import { Problem } from '../models/Problem.entity';
 import { TestCase } from '../models/TestCase.entity';
 import { SubmissionVerdict } from '../types/enums';
+import { redisUrl } from '../config/redis';
 
 export interface SubmissionJobData {
   submissionId: string;
@@ -96,7 +97,7 @@ export class EnhancedQueueService {
     for (const [queueName, config] of Object.entries(this.queueConfigs)) {
       const queue = new Bull(
         queueName,
-        process.env.REDIS_URL as string,
+        redisUrl as string,
         {
           defaultJobOptions: config.defaultJobOptions,
           settings: config.settings
