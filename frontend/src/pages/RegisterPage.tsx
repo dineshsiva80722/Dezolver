@@ -78,7 +78,6 @@ const RegisterPage = () => {
     try {
       setLoading(true)
 
-      // Call the backend API to register
       const response = await authAPI.register({
         username: formData.username,
         email: formData.email,
@@ -87,9 +86,11 @@ const RegisterPage = () => {
         phoneNumber: formData.phoneNumber || undefined
       })
 
-      if (response?.user && response?.token) {
-        const refreshToken = response?.refreshToken
-        registerUser(response.user, response.token, refreshToken)
+      const data = response?.data ?? response
+
+      if (data?.user && data?.token) {
+        const { user, token, refreshToken } = data
+        registerUser(user, token, refreshToken)
         toast.success('Registration successful! Please check your email to verify your account.')
         navigate('/profile')
       } else {

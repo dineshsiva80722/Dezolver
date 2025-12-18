@@ -27,11 +27,13 @@ const LoginPage = () => {
     try {
       const response = await authAPI.login(data)
 
-      if (response?.user && response?.token) {
-        const refreshToken = response?.refreshToken
-        login(response.user, response.token, refreshToken)
+      const responseData = response?.data ?? response
+
+      if (responseData?.user && responseData?.token) {
+        const { user, token, refreshToken } = responseData
+        login(user, token, refreshToken)
         toast.success('Login successful!')
-        const role = response.user.role
+        const role = user.role
         if (role === 'super_admin') {
           navigate('/super-admin', { replace: true }) 
         } else if (role === 'admin') {
